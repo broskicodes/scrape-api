@@ -20,7 +20,10 @@ server.setErrorHandler(errorHandler);
 
 const start = async () => {
   try {
-    await server.listen({ port: config.port as number });
+    await server.listen({
+      port: config.port as number,
+      host: '0.0.0.0'
+    });
     console.log(`Server listening on http://localhost:${config.port}`);
   } catch (err) {
     server.log.error(err);
