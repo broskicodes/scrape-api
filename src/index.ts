@@ -3,6 +3,7 @@ import config from './config';
 import routes from './routes';
 import { errorHandler } from './middleware/errorHandler';
 import cors from './plugins/cors';
+import 'dotenv/config';
 
 const server = Fastify({
   logger: true

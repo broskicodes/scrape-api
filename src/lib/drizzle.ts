@@ -4,13 +4,25 @@ import * as schema from './db-schema';
 import { eq } from 'drizzle-orm';
 import { Tweet } from './types';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+// Function to get or create Pool
+function getPool(): Pool {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not set in the environment variables');
+  }
+  return new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+}
 
-export const db = drizzle(pool, { schema });
+// Function to get or create db
+function getDb() {
+  const pool = getPool();
+  return drizzle(pool, { schema });
+}
 
 export async function addTweetsToDb(tweets: Tweet[]) {
+  const db = getDb();
+
   for (const tweet of tweets) {
     // Check if the author already exists in twitterHandles
     const existingHandle = await db.select()
