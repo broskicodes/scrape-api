@@ -105,3 +105,19 @@ export const tweets = pgTable("tweets", {
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   deleted_at: timestamp("deleted_at"),
 });
+
+export const jobStatus = pgEnum("job_status", [
+  "pending",
+  "running",
+  "completed",
+  "failed"
+]);
+
+export const jobs = pgTable('jobs', {
+  id: uuid('id').primaryKey().defaultRandom().notNull(),
+  status: jobStatus('status').notNull(),
+  type: text('type').notNull(),
+  params: text('params').notNull(),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+});

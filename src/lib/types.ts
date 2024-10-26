@@ -1,4 +1,3 @@
-
 export enum TwitterScrapeType {
     Initialize = "initialize",
     Monthly = "monthly",
@@ -24,4 +23,15 @@ export enum TwitterScrapeType {
     like_count: number;
     quote_count: number;
     view_count: number;
+  }
+
+  export type JobStatus = 'pending' | 'running' | 'completed' | 'failed';
+  
+  export interface Job {
+    id: string;
+    status: JobStatus;
+    type: string;
+    params: string;
+    created_at: Date;
+    updated_at: Date;
   }

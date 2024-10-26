@@ -10,6 +10,7 @@ export default async function (fastify: FastifyInstance) {
     Body: { scrapeType: TwitterScrapeType; handles: string[] };
   }>('/', { schema: twitterScrapeSchema }, async (request, reply) => {
     const { scrapeType, handles } = request.body;
-    return twitterScraperController.scrapeTwitterWithParams(scrapeType, handles);
+    const jobId = await twitterScraperController.startTwitterScrapeJob(scrapeType, handles);
+    return { message: 'Twitter scrape job started', jobId };
   });
 }

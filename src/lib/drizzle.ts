@@ -2,7 +2,8 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from 'pg';
 import * as schema from './db-schema';
 import { eq } from 'drizzle-orm';
-import { Tweet } from './types';
+import { Job, JobStatus, Tweet } from './types';
+import { jobs } from './db-schema';
 
 // Function to get or create Pool
 function getPool(): Pool {
@@ -75,4 +76,26 @@ export async function addTweetsToDb(tweets: Tweet[]) {
         },
       });
   }
+}
+
+export async function addJobToDb(job: Job): Promise<void> {
+  const db = getDb();
+  await db.insert(jobs).values(job);
+}
+
+export async function updateJobStatus(jobId: string, status: JobStatus): Promise<void> {
+  const db = getDb();
+  await db.update(jobs).set({ status, updated_at: new Date() }).where(eq(jobs.id, jobId));
+}
+
+export async function getJobById(jobId: string): Promise<Job | undefined> {
+  const db = getDb();
+  const result = await db.select().from(jobs).where(eq(jobs.id, jobId));
+  return result[0];
+}
+
+export async function getNextPendingJob(): Promise<Job | undefined> {
+  const db = getDb();
+  const result = await db.select().from(jobs).where(eq(jobs.status, 'pending')).limit(1);
+  return result[0];
 }

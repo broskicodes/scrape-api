@@ -4,6 +4,8 @@ import routes from './routes';
 import { errorHandler } from './middleware/errorHandler';
 import cors from './plugins/cors';
 import 'dotenv/config';
+import { BackgroundJobService } from './services/backgroundJobService';
+import { getNextPendingJob } from './lib/drizzle';
 
 const server = Fastify({
   logger: true
@@ -17,6 +19,18 @@ server.register(routes);
 
 // Error handler
 server.setErrorHandler(errorHandler);
+
+// const backgroundJobService = new BackgroundJobService();
+
+// async function processNextJob() {
+//   const job = await getNextPendingJob();
+//   if (job) {
+//     await backgroundJobService.processJob(job.id);
+//   }
+// }
+
+// // Run job processing every 5 seconds
+// setInterval(processNextJob, 5000);
 
 const start = async () => {
   try {
