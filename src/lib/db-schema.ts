@@ -1,0 +1,107 @@
+import { pgTable, text, uuid, timestamp, doublePrecision, pgEnum, jsonb, integer, bigint } from "drizzle-orm/pg-core";
+
+export const blogposts = pgTable("blogposts", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  description: text("description"),
+  author: text("author").notNull(),
+  slug: text("slug").notNull().unique(),
+  image_url: text("image_url"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
+});
+
+export const subscribers = pgTable("subscribers", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  email: text("email").notNull().unique(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
+});
+
+export const nodeType = pgEnum("node_type", [
+  "coworking",
+  "meetup",
+  "hackerhouse",
+  "hackathon",
+  "incubator/accelerator",
+  "other"
+]);
+
+export const communities = pgTable("communities", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  link: text("link"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
+});
+
+export const nodes = pgTable("nodes", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  location: text("location").notNull(),
+  longitude: doublePrecision("longitude").notNull(),
+  latitude: doublePrecision("latitude").notNull(),
+  node_type: nodeType("node_type").notNull(),
+  links: jsonb("links").notNull(),
+  connection: uuid("connection").references(() => communities.id),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
+});
+
+export const buildingStatusEnum = pgEnum("building_status", ["yes", "no", "none"]);
+
+export const signups = pgTable("signups", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  name: text("name").notNull(),
+  twitter: text("twitter").notNull(),
+  email: text("email").notNull(),
+  buildingStatus: buildingStatusEnum("building_status").notNull(),
+  projectLink: text("project_link"),
+  projectDescription: text("project_description"),
+  idea: text("idea"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const twitterHandles = pgTable("twitter_handles", {
+  id: bigint("id", { mode: 'bigint' }).primaryKey().notNull(),
+  handle: text("handle").notNull().unique(),
+  url: text("url").notNull(),
+  pfp: text("pfp"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
+});
+
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  twitter_handle_id: bigint("twitter_handle_id", { mode: 'bigint' }).references(() => twitterHandles.id).notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
+});
+
+export const tweets = pgTable("tweets", {
+  tweet_id: bigint("tweet_id", { mode: 'bigint' }).primaryKey().notNull(),
+  handle_id: bigint("handle_id", { mode: 'bigint' }).references(() => twitterHandles.id).notNull(),
+  url: text("url").notNull(),
+  date: timestamp("date").notNull(),
+  bookmark_count: integer("bookmark_count").notNull(),
+  retweet_count: integer("retweet_count").notNull(),
+  reply_count: integer("reply_count").notNull(),
+  like_count: integer("like_count").notNull(),
+  quote_count: integer("quote_count").notNull(),
+  view_count: integer("view_count").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
+});
