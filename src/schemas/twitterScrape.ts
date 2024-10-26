@@ -1,4 +1,4 @@
-import { TwitterScrapeType, Tweet } from '../lib/types';
+import { TwitterScrapeType } from '../lib/types';
 
 export const twitterScrapeSchema = {
   body: {
@@ -20,30 +20,12 @@ export const twitterScrapeSchema = {
   },
   response: {
     200: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          tweet_id: { type: 'string' },
-          author: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              handle: { type: 'string' },
-              pfp: { type: 'string' },
-              url: { type: 'string' }
-            }
-          },
-          url: { type: 'string' },
-          date: { type: 'string' },
-          bookmark_count: { type: 'number' },
-          retweet_count: { type: 'number' },
-          reply_count: { type: 'number' },
-          like_count: { type: 'number' },
-          quote_count: { type: 'number' },
-          view_count: { type: 'number' }
-        }
-      }
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        jobId: { type: 'string' }
+      },
+      required: ['message', 'jobId']
     }
   }
 };
