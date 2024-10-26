@@ -4,12 +4,16 @@ import routes from './routes';
 import { errorHandler } from './middleware/errorHandler';
 import cors from './plugins/cors';
 import 'dotenv/config';
-import { BackgroundJobService } from './services/backgroundJobService';
+import { CronJobService } from './services/cronJobService';
+import cron from 'node-cron';
 import { getNextPendingJob } from './lib/drizzle';
+import { setTimeout } from 'timers/promises';
 
 const server = Fastify({
   logger: true
 });
+
+const cronJobService = new CronJobService();
 
 // Register plugins
 server.register(cors);
@@ -20,20 +24,37 @@ server.register(routes);
 // Error handler
 server.setErrorHandler(errorHandler);
 
-// const backgroundJobService = new BackgroundJobService();
+async function processJobs() {
+  while (true) {
+    const job = await getNextPendingJob();
+    if (job) {
+      await cronJobService.processJob(job.id);
+      // Immediately check for the next job
+      continue;
+    }
+    // If no job is found, wait for 5 seconds before checking again
+    await setTimeout(10000);
+  }
+}
 
-// async function processNextJob() {
-//   const job = await getNextPendingJob();
-//   if (job) {
-//     await backgroundJobService.processJob(job.id);
-//   }
-// }
+// Start the job processing loop
+processJobs().catch(error => {
+  console.error('Job processing error:', error);
+  // Implement proper error handling and potentially restart the loop
+});
 
-// // Run job processing every 5 seconds
-// setInterval(processNextJob, 5000);
+// Schedule the daily cron job to run at midnight (00:00)
+const cronJob = cron.schedule('0 0 * * *', async () => {
+  console.log('Running daily Twitter scrape job scheduler');
+  await cronJobService.scheduleDailyTwitterScrapeJobs();
+});
 
 const start = async () => {
   try {
+    // Start the cron job
+    cronJob.start();
+    console.log('Cron job started');
+
     await server.listen({
       port: config.port as number,
       host: '0.0.0.0'

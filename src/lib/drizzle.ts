@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from 'pg';
 import * as schema from './db-schema';
-import { eq } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 import { Job, JobStatus, Tweet } from './types';
 import { jobs } from './db-schema';
 
@@ -16,7 +16,7 @@ function getPool(): Pool {
 }
 
 // Function to get or create db
-function getDb() {
+export function getDb() {
   const pool = getPool();
   return drizzle(pool, { schema });
 }
@@ -76,6 +76,15 @@ export async function addTweetsToDb(tweets: Tweet[]) {
         },
       });
   }
+}
+
+export async function getTwitterHandles(): Promise<string[]> {
+  const db = getDb();
+  const handles = (await db.select({ handle: schema.twitterHandles.handle })
+    .from(schema.twitterHandles)
+    .where(isNull(schema.twitterHandles.deleted_at))).map(h => h.handle);
+
+  return handles;
 }
 
 export async function addJobToDb(job: Job): Promise<void> {

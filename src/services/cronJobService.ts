@@ -1,8 +1,8 @@
 import { TwitterScraperService } from './twitterScraperService';
-import { getJobById, updateJobStatus } from '../lib/drizzle';
+import { getJobById, updateJobStatus, getTwitterHandles, addJobToDb } from '../lib/drizzle';
 import { Job } from '../lib/types';
 
-export class BackgroundJobService {
+export class CronJobService {
   private twitterScraperService: TwitterScraperService;
 
   constructor() {
@@ -43,5 +43,42 @@ export class BackgroundJobService {
   private async processTwitterScrapeJob(job: Job): Promise<void> {
     const params = JSON.parse(job.params);
     await this.twitterScraperService.runScrapeJob(job.id, params.scrapeType, params.handles);
+  }
+
+  async scheduleDailyTwitterScrapeJobs(): Promise<void> {
+    try {
+      // Fetch all handles from the twitterHandles table
+      const handles = await getTwitterHandles();
+
+      // Group handles into batches of 10
+      const handleBatches = this.chunkArray(handles, 10);
+
+      // Create a job for each batch
+      for (const batch of handleBatches) {
+        await addJobToDb({
+          id: crypto.randomUUID(),
+          status: 'pending',
+          type: 'twitter_scrape',
+          params: JSON.stringify({
+            scrapeType: 'weekly',
+            handles: batch
+          }),
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+      }
+
+      console.log(`Scheduled ${handleBatches.length} Twitter scrape jobs`);
+    } catch (error) {
+      console.error('Error scheduling daily Twitter scrape jobs:', error);
+    }
+  }
+
+  private chunkArray<T>(array: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
   }
 }
