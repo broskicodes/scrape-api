@@ -38,7 +38,7 @@ export class TwitterScraperService {
 
       const result = await runApifyActor(APIFY_TWEET_SCRAPER_ACTOR, input);
 
-      const stats: Tweet[] = result.map((item: any) => ({
+      const stats: Tweet[] = result.filter((item: any) => item.author).map((item: any) => ({
         author: {
           id: item.author.id,
           handle: item.author.userName,
