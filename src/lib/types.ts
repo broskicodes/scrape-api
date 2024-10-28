@@ -2,7 +2,8 @@ export enum TwitterScrapeType {
     Initialize = "initialize",
     Monthly = "monthly",
     Weekly = "weekly",
-    Daily = "daily"
+    Daily = "daily",
+    Update = "update"
   }
   
   export interface TwitterAuthor {
@@ -16,6 +17,7 @@ export enum TwitterScrapeType {
     tweet_id: string;
     author: TwitterAuthor;
     url: string;
+    text: string;
     date: string;
     bookmark_count: number;
     retweet_count: number;
@@ -23,6 +25,10 @@ export enum TwitterScrapeType {
     like_count: number;
     quote_count: number;
     view_count: number;
+    language: string;
+    is_reply: boolean;
+    is_retweet: boolean;
+    is_quote: boolean;
   }
 
   export type JobStatus = 'pending' | 'running' | 'completed' | 'failed';

@@ -47,13 +47,18 @@ export class TwitterScraperService {
         },
         tweet_id: item.id,
         url: item.url,
+        text: item.text,
         date: item.createdAt,
         bookmark_count: item.bookmarkCount,
         retweet_count: item.retweetCount,
         reply_count: item.replyCount,
         like_count: item.likeCount,
         quote_count: item.quoteCount,
-        view_count: item.viewCount
+        view_count: item.viewCount,
+        language: item.lang,
+        is_reply: item.isReply,
+        is_retweet: item.isRetweet,
+        is_quote: item.isQuote,
       }));
 
       await addTweetsToDb(stats);

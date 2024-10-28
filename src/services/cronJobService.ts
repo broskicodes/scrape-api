@@ -1,6 +1,6 @@
 import { TwitterScraperService } from './twitterScraperService';
 import { getJobById, updateJobStatus, getTwitterHandles, addJobToDb } from '../lib/drizzle';
-import { Job } from '../lib/types';
+import { Job, TwitterScrapeType } from '../lib/types';
 
 export class CronJobService {
   private twitterScraperService: TwitterScraperService;
@@ -60,7 +60,7 @@ export class CronJobService {
           status: 'pending',
           type: 'twitter_scrape',
           params: JSON.stringify({
-            scrapeType: 'weekly',
+            scrapeType: TwitterScrapeType.Update,
             handles: batch
           }),
           created_at: new Date(),

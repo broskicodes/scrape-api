@@ -1,4 +1,4 @@
-import { pgTable, text, uuid, timestamp, doublePrecision, pgEnum, jsonb, integer, bigint } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, doublePrecision, pgEnum, jsonb, integer, bigint, boolean } from "drizzle-orm/pg-core";
 
 export const blogposts = pgTable("blogposts", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
@@ -94,6 +94,7 @@ export const tweets = pgTable("tweets", {
   tweet_id: bigint("tweet_id", { mode: 'bigint' }).primaryKey().notNull(),
   handle_id: bigint("handle_id", { mode: 'bigint' }).references(() => twitterHandles.id).notNull(),
   url: text("url").notNull(),
+  text: text("text").notNull(),
   date: timestamp("date").notNull(),
   bookmark_count: integer("bookmark_count").notNull(),
   retweet_count: integer("retweet_count").notNull(),
@@ -101,6 +102,10 @@ export const tweets = pgTable("tweets", {
   like_count: integer("like_count").notNull(),
   quote_count: integer("quote_count").notNull(),
   view_count: integer("view_count").notNull(),
+  language: text("language").notNull(),
+  is_reply: boolean("is_reply").notNull(),
+  is_retweet: boolean("is_retweet").notNull(),
+  is_quote: boolean("is_quote").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   deleted_at: timestamp("deleted_at"),

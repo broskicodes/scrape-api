@@ -55,6 +55,7 @@ export async function addTweetsToDb(tweets: Tweet[]) {
         tweet_id: BigInt(tweet.tweet_id),
         handle_id: handleId,
         url: tweet.url,
+        text: tweet.text,
         date: new Date(tweet.date),
         bookmark_count: tweet.bookmark_count,
         retweet_count: tweet.retweet_count,
@@ -62,10 +63,15 @@ export async function addTweetsToDb(tweets: Tweet[]) {
         like_count: tweet.like_count,
         quote_count: tweet.quote_count,
         view_count: tweet.view_count,
+        language: tweet.language,
+        is_reply: tweet.is_reply,
+        is_retweet: tweet.is_retweet,
+        is_quote: tweet.is_quote,
       })
       .onConflictDoUpdate({
         target: schema.tweets.tweet_id,
         set: {
+          text: tweet.text,
           bookmark_count: tweet.bookmark_count,
           retweet_count: tweet.retweet_count,
           reply_count: tweet.reply_count,
