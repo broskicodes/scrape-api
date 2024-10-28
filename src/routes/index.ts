@@ -8,5 +8,5 @@ export default async function (fastify: FastifyInstance) {
     fastify.register(twitterScrapingRoutes, { prefix: '/twitter' });
     // Register other scraping routes here
   }, { prefix: '/scrape' });
-  // Register other route groups here
+  
 }

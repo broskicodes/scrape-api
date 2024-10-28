@@ -45,7 +45,7 @@ export class CronJobService {
     await this.twitterScraperService.runScrapeJob(job.id, params.scrapeType, params.handles);
   }
 
-  async scheduleDailyTwitterScrapeJobs(): Promise<void> {
+  async scheduleDailyTwitterScrapeJobs(type?: TwitterScrapeType): Promise<void> {
     try {
       // Fetch all handles from the twitterHandles table
       const handles = await getTwitterHandles();
@@ -60,7 +60,7 @@ export class CronJobService {
           status: 'pending',
           type: 'twitter_scrape',
           params: JSON.stringify({
-            scrapeType: TwitterScrapeType.Update,
+            scrapeType: type || TwitterScrapeType.Update,
             handles: batch
           }),
           created_at: new Date(),
