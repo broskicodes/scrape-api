@@ -2,8 +2,8 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from 'pg';
 import * as schema from './db-schema';
 import { eq, isNull } from 'drizzle-orm';
-import { Job, JobStatus, Tweet } from './types';
-import { jobs } from './db-schema';
+import { Job, JobStatus, Tweet, SearchFilters } from './types';
+import { jobs, searches } from './db-schema';
 
 // Function to get or create Pool
 function getPool(): Pool {
@@ -113,4 +113,26 @@ export async function getNextPendingJob(): Promise<Job | undefined> {
   const db = getDb();
   const result = await db.select().from(jobs).where(eq(jobs.status, 'pending')).limit(1);
   return result[0];
+}
+
+export interface SaveSearchParams {
+  userId: string;
+  query: string;
+  filters: SearchFilters;
+}
+
+export async function saveSearchToDb({ userId, query, filters }: SaveSearchParams): Promise<string> {
+  const db = getDb();
+  
+  const [result] = await db.insert(searches)
+    .values({
+      user_id: userId,
+      query,
+      filters,
+      created_at: new Date(),
+      updated_at: new Date()
+    })
+    .returning({ id: searches.id });
+
+  return result.id;
 }

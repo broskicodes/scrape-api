@@ -31,7 +31,7 @@ export class TwitterScraperService {
       const sinceDate = getSinceDate(scrapeType);
 
       const input = {
-        "searchTerms": handles.map((handle: string) => `from:${handle} since:${sinceDate} -filter:replies -filter:quotes`),
+        "searchTerms": handles.map((handle: string) => `from:${handle} since:${sinceDate} -filter:replies`),
         "sort": "Latest",
         "tweetLanguage": "en",
       };
@@ -41,9 +41,11 @@ export class TwitterScraperService {
       const stats: Tweet[] = result.filter((item: any) => item.author).map((item: any) => ({
         author: {
           id: item.author.id,
+          name: item.author.name,
           handle: item.author.userName,
           pfp: item.author.profilePicture,
           url: item.author.url,
+          verified: item.author.isBlueVerified,
         },
         tweet_id: item.id,
         url: item.url,

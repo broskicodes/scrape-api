@@ -8,9 +8,11 @@ export enum TwitterScrapeType {
   
   export interface TwitterAuthor {
     id: string;
+    name: string;
     handle: string;
     pfp: string;
     url: string;
+    verified: boolean;
   }
   
   export interface Tweet {
@@ -40,4 +42,15 @@ export enum TwitterScrapeType {
     params: string;
     created_at: Date;
     updated_at: Date;
+  }
+
+  export interface SearchFilters {
+    verified?: boolean;
+    mediaOnly?: boolean;
+    linksOnly?: boolean;
+    quoteTweetsOnly?: boolean;
+    minLikes?: string;
+    minComments?: string;
+    minRetweets?: string;
+    dateRange?: string;
   }
