@@ -3,6 +3,7 @@ export interface SearchFilters {
   mediaOnly?: boolean;
   linksOnly?: boolean;
   quoteTweetsOnly?: boolean;
+  threadOnly?: boolean;
   minLikes?: string;
   minComments?: string;
   minRetweets?: string;
@@ -14,7 +15,6 @@ export const twitterSearchSchema = {
     type: 'object',
     required: ['query'],
     properties: {
-      userId: { type: 'string' },
       query: { type: 'string' },
       filters: {
         type: 'object',
@@ -23,6 +23,7 @@ export const twitterSearchSchema = {
           mediaOnly: { type: 'boolean' },
           linksOnly: { type: 'boolean' },
           quoteTweetsOnly: { type: 'boolean' },
+          threadOnly: { type: 'boolean' },
           minLikes: { type: 'string' },
           minComments: { type: 'string' },
           minRetweets: { type: 'string' },

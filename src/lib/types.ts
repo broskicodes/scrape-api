@@ -49,6 +49,7 @@ export enum TwitterScrapeType {
     mediaOnly?: boolean;
     linksOnly?: boolean;
     quoteTweetsOnly?: boolean;
+    threadOnly?: boolean;
     minLikes?: string;
     minComments?: string;
     minRetweets?: string;

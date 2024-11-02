@@ -29,6 +29,25 @@ export class TwitterSearchService {
     return ` since:${formattedDate}`;
   }
 
+  private buildSearchQuery(query: string, filters: SearchFilters): string {
+    let searchQuery = query;
+
+    // Build search query with filters
+    if (filters) {
+      if (filters.verified) searchQuery += ' filter:blue_verified';
+      if (filters.mediaOnly) searchQuery += ' filter:media';
+      if (filters.linksOnly) searchQuery += ' filter:links';
+      if (filters.quoteTweetsOnly) searchQuery += ' filter:quote';
+      if (filters.minLikes) searchQuery += ` min_faves:${filters.minLikes}`;
+      if (filters.minComments) searchQuery += ` min_replies:${filters.minComments}`;
+      if (filters.minRetweets) searchQuery += ` min_retweets:${filters.minRetweets}`;
+      if (filters.dateRange) searchQuery += this.getDateRangeQuery(filters.dateRange);
+      if (filters.threadOnly) searchQuery += ' filter:self_threads';
+    }
+
+    return searchQuery;
+  }
+
   async search(userId: string, query: string, filters: SearchFilters): Promise<Tweet[]> {
     try {
       // Save search to DB if userId is provided
@@ -40,19 +59,7 @@ export class TwitterSearchService {
         });
       }
 
-      let searchQuery = `"${query}" -filter:replies`;
-
-      // Build search query with filters
-      if (filters) {
-        if (filters.verified) searchQuery += ' filter:blue_verified';
-        if (filters.mediaOnly) searchQuery += ' filter:media';
-        if (filters.linksOnly) searchQuery += ' filter:links';
-        if (filters.quoteTweetsOnly) searchQuery += ' filter:quote';
-        if (filters.minLikes) searchQuery += ` min_faves:${filters.minLikes}`;
-        if (filters.minComments) searchQuery += ` min_replies:${filters.minComments}`;
-        if (filters.minRetweets) searchQuery += ` min_retweets:${filters.minRetweets}`;
-        if (filters.dateRange) searchQuery += this.getDateRangeQuery(filters.dateRange);
-      }
+      const searchQuery = this.buildSearchQuery(query, filters);
 
       const input = {
         "searchTerms": [searchQuery],
