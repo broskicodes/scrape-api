@@ -84,6 +84,8 @@ export const signups = pgTable("signups", {
 export const twitterHandles = pgTable("twitter_handles", {
   id: bigint("id", { mode: "bigint" }).primaryKey().notNull(),
   handle: text("handle").notNull().unique(),
+  name: text("name").notNull().default(""),
+  verified: boolean("verified").notNull().default(false),
   url: text("url").notNull(),
   pfp: text("pfp"),
   created_at: timestamp("created_at").defaultNow().notNull(),

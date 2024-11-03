@@ -41,6 +41,8 @@ export async function addTweetsToDb(tweets: Tweet[]) {
           handle: tweet.author.handle,
           url: tweet.author.url,
           pfp: tweet.author.pfp,
+          name: tweet.author.name,
+          verified: tweet.author.verified,
         })
         .returning({ id: schema.twitterHandles.id });
 
