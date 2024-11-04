@@ -1,12 +1,15 @@
 import { TwitterScraperService } from './twitterScraperService';
-import { getJobById, updateJobStatus, getTwitterHandles, addJobToDb } from '../lib/drizzle';
+import { getJobById, updateJobStatus, getTwitterHandles, addJobToDb, getSomeTweets } from '../lib/drizzle';
 import { Job, TwitterScrapeType } from '../lib/types';
+import { TwitterImportService } from './twitterImportService';
 
 export class CronJobService {
   private twitterScraperService: TwitterScraperService;
+  private twitterImportService: TwitterImportService;
 
   constructor() {
     this.twitterScraperService = new TwitterScraperService();
+    this.twitterImportService = new TwitterImportService();
   }
 
   async processJob(jobId: string): Promise<void> {
@@ -67,7 +70,7 @@ export class CronJobService {
           updated_at: new Date(),
         });
       }
-
+    
       console.log(`Scheduled ${handleBatches.length} Twitter scrape jobs`);
     } catch (error) {
       console.error('Error scheduling daily Twitter scrape jobs:', error);

@@ -5,6 +5,7 @@ import { addTweetsToDb } from '../lib/drizzle';
 
 export class TwitterImportService {
   async importTweets(urls: string[]): Promise<Tweet[]> {
+    console.log(urls.length);
     try {
       const input = {
         "sort": "Top",
@@ -21,6 +22,7 @@ export class TwitterImportService {
             id: item.author.id,
             name: item.author.name,
             handle: item.author.userName,
+            followers: item.author.followers,
             pfp: item.author.profilePicture,
             url: item.author.url,
             verified: item.author.isBlueVerified,
@@ -39,6 +41,7 @@ export class TwitterImportService {
           is_reply: item.isReply,
           is_retweet: item.isRetweet,
           is_quote: item.isQuote,
+          entities: item.entities,
         }));
 
       await addTweetsToDb(importedTweets);

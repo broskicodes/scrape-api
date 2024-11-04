@@ -64,6 +64,13 @@
       "when": 1730648618518,
       "tag": "0008_special_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1730734300299,
+      "tag": "0009_outstanding_hemingway",
+      "breakpoints": true
     }
   ]
 }

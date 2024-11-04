@@ -1,8 +1,8 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from 'pg';
 import * as schema from './db-schema';
-import { eq, isNull } from 'drizzle-orm';
-import { Job, JobStatus, Tweet, SearchFilters } from './types';
+import { desc, eq, gte, isNull } from 'drizzle-orm';
+import { Job, JobStatus, Tweet, SearchFilters, TweetEntity } from './types';
 import { jobs, searches } from './db-schema';
 
 // Function to get or create Pool
@@ -26,30 +26,31 @@ export async function addTweetsToDb(tweets: Tweet[]) {
 
   for (const tweet of tweets) {
     // Check if the author already exists in twitterHandles
-    const existingHandle = await db.select()
-      .from(schema.twitterHandles)
-      .where(eq(schema.twitterHandles.id, BigInt(tweet.author.id)))
-      .limit(1);
-
-    let handleId: bigint;
-
-    if (existingHandle.length === 0) {
-      // Author doesn't exist, add them to twitterHandles
-      const [newHandle] = await db.insert(schema.twitterHandles)
-        .values({
-          id: BigInt(tweet.author.id),
+    const [handle] = await db.insert(schema.twitterHandles)
+      .values({
+        id: BigInt(tweet.author.id),
+        handle: tweet.author.handle,
+        url: tweet.author.url,
+        pfp: tweet.author.pfp,
+        name: tweet.author.name,
+        verified: tweet.author.verified,
+        followers: tweet.author.followers,
+      })
+      .onConflictDoUpdate({
+        target: schema.twitterHandles.id,
+        set: {
           handle: tweet.author.handle,
           url: tweet.author.url,
           pfp: tweet.author.pfp,
           name: tweet.author.name,
           verified: tweet.author.verified,
-        })
-        .returning({ id: schema.twitterHandles.id });
+          followers: tweet.author.followers,
+          updated_at: new Date()
+        }
+      })
+      .returning({ id: schema.twitterHandles.id });
 
-      handleId = newHandle.id;
-    } else {
-      handleId = existingHandle[0].id;
-    }
+    const handleId = handle.id;
 
     // Insert the tweet
     await db.insert(schema.tweets)
@@ -69,6 +70,7 @@ export async function addTweetsToDb(tweets: Tweet[]) {
         is_reply: tweet.is_reply,
         is_retweet: tweet.is_retweet,
         is_quote: tweet.is_quote,
+        entities: tweet.entities,
       })
       .onConflictDoUpdate({
         target: schema.tweets.tweet_id,
@@ -80,6 +82,7 @@ export async function addTweetsToDb(tweets: Tweet[]) {
           like_count: tweet.like_count,
           quote_count: tweet.quote_count,
           view_count: tweet.view_count,
+          entities: tweet.entities,
           updated_at: new Date(),
         },
       });
@@ -93,6 +96,20 @@ export async function getTwitterHandles(): Promise<string[]> {
     .where(isNull(schema.twitterHandles.deleted_at))).map(h => h.handle);
 
   return handles;
+}
+
+export async function getSomeTweets(): Promise<Omit<Tweet, 'author'>[]> {
+  const db = getDb();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 5);
+  const tweets = await db.select().from(schema.tweets).where(gte(schema.tweets.created_at, sevenDaysAgo));
+  
+  return tweets.map(tweet => ({
+    ...tweet,
+    date: tweet.date.toISOString(),
+    tweet_id: tweet.tweet_id.toString(),
+    entities: tweet.entities as TweetEntity
+  }));
 }
 
 export async function addJobToDb(job: Job): Promise<void> {

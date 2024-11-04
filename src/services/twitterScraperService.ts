@@ -46,6 +46,7 @@ export class TwitterScraperService {
           pfp: item.author.profilePicture,
           url: item.author.url,
           verified: item.author.isBlueVerified,
+          followers: item.author.followers,
         },
         tweet_id: item.id,
         url: item.url,
@@ -61,6 +62,7 @@ export class TwitterScraperService {
         is_reply: item.isReply,
         is_retweet: item.isRetweet,
         is_quote: item.isQuote,
+        entities: item.entities,
       }));
 
       await addTweetsToDb(stats);

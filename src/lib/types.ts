@@ -13,6 +13,17 @@ export enum TwitterScrapeType {
     pfp: string;
     url: string;
     verified: boolean;
+    followers: number;
+  }
+
+  export interface TweetEntity {
+    url: Array<{
+      url: string;
+    }>;
+    media: Array<{
+      type: string;
+      url: string;
+    }> | null;
   }
   
   export interface Tweet {
@@ -28,6 +39,7 @@ export enum TwitterScrapeType {
     quote_count: number;
     view_count: number;
     language: string;
+    entities: TweetEntity;
     is_reply: boolean;
     is_retweet: boolean;
     is_quote: boolean;
