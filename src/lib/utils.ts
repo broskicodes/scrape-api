@@ -1,5 +1,13 @@
 import { TwitterScrapeType } from "./types";
 
+export function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export function getSinceDate(scrapeType: TwitterScrapeType): string {
     const now = new Date();
     let sinceDate: Date;

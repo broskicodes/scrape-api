@@ -17,7 +17,7 @@ export enum TwitterScrapeType {
   }
 
   export interface TweetEntity {
-    url: Array<{
+    urls: Array<{
       url: string;
     }>;
     media: Array<{
@@ -43,6 +43,8 @@ export enum TwitterScrapeType {
     is_reply: boolean;
     is_retweet: boolean;
     is_quote: boolean;
+    is_thread: boolean;
+    thread_id?: string;
   }
 
   export type JobStatus = 'pending' | 'running' | 'completed' | 'failed';

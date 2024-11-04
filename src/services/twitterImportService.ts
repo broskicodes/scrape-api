@@ -10,7 +10,7 @@ export class TwitterImportService {
       const input = {
         "sort": "Top",
         "startUrls": urls,
-        "maxItems": 50
+        // "maxItems": 50
       };
 
       const result = await runApifyActor(APIFY_TWEET_SCRAPER_ACTOR, input);
@@ -42,6 +42,8 @@ export class TwitterImportService {
           is_retweet: item.isRetweet,
           is_quote: item.isQuote,
           entities: item.entities,
+          is_thread: false,
+          thread_id: item.conversationId,
         }));
 
       await addTweetsToDb(importedTweets);

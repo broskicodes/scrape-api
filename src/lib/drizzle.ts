@@ -4,6 +4,7 @@ import * as schema from './db-schema';
 import { desc, eq, gte, isNull } from 'drizzle-orm';
 import { Job, JobStatus, Tweet, SearchFilters, TweetEntity } from './types';
 import { jobs, searches } from './db-schema';
+import { chunkArray } from "./utils";
 
 // Function to get or create Pool
 function getPool(): Pool {
@@ -23,6 +24,8 @@ export function getDb() {
 
 export async function addTweetsToDb(tweets: Tweet[]) {
   const db = getDb();
+
+  const searchTerms: string[] = [];
 
   for (const tweet of tweets) {
     // Check if the author already exists in twitterHandles
@@ -86,6 +89,50 @@ export async function addTweetsToDb(tweets: Tweet[]) {
           updated_at: new Date(),
         },
       });
+
+    if (tweet.thread_id) {
+      searchTerms.push(`from:${tweet.author.handle} filter:self_threads conversation_id:${tweet.tweet_id}`);
+    }
+  }
+
+  if (searchTerms.length > 0) {
+    const batches = chunkArray(searchTerms, 50);
+
+    for (const batch of batches) {
+      await addJobToDb({
+        id: crypto.randomUUID(),
+        status: 'pending',
+        type: 'thread_import',
+        params: JSON.stringify({ input: { searchTerms: batch }, env: process.env.ENVIRONMENT }),
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+    }
+  }
+}
+
+export async function addThreadsToDb(tweets: Tweet[]) {
+  const db = getDb();
+
+  const threadIds = new Set<string>();
+  for (const tweet of tweets) {
+    if (!tweet.thread_id) {
+      continue;
+    }
+
+    if (!threadIds.has(tweet.thread_id)) {
+      threadIds.add(tweet.thread_id);
+
+      await db.update(schema.tweets).set({ is_thread: true }).where(eq(schema.tweets.tweet_id, BigInt(tweet.thread_id)));
+    }
+
+    await db.insert(schema.threads).values({
+      tweet_id: BigInt(tweet.tweet_id),
+      parent_tweet_id: BigInt(tweet.thread_id),
+      url: tweet.url,
+      text: tweet.text,
+      date: new Date(tweet.date),
+    }).onConflictDoNothing();
   }
 }
 

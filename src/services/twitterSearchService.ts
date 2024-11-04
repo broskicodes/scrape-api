@@ -97,6 +97,7 @@ export class TwitterSearchService {
         is_retweet: item.isRetweet,
         is_quote: item.isQuote,
         entities: item.entities,
+        is_thread: false,
       }));
     } catch (error) {
       console.error('Error in search:', error);
