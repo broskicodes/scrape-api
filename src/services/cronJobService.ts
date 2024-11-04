@@ -58,7 +58,6 @@ export class CronJobService {
 
     for (const batch of tweetBatches) {
       await this.twitterImportService.importTweets(batch);
-      // break;
     }
   }
 
