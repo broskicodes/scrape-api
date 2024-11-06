@@ -10,7 +10,7 @@ export class TwitterImportService {
       const input = {
         "sort": "Top",
         "startUrls": urls,
-        "maxItems": 50
+        "maxItems": 100
       };
 
       const result = await runApifyActor(APIFY_TWEET_SCRAPER_ACTOR, input);
