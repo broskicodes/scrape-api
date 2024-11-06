@@ -9,11 +9,12 @@ export enum TwitterScrapeType {
   export interface TwitterAuthor {
     id: string;
     name: string;
+    description?: string;
     handle: string;
     pfp: string;
     url: string;
+    followers?: number;
     verified: boolean;
-    followers: number;
   }
 
   export interface TweetEntity {

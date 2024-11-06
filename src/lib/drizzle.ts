@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from 'pg';
 import * as schema from './db-schema';
 import { desc, eq, gte, isNull } from 'drizzle-orm';
-import { Job, JobStatus, Tweet, SearchFilters, TweetEntity } from './types';
+import { Job, JobStatus, Tweet, SearchFilters, TweetEntity, TwitterAuthor } from './types';
 import { jobs, searches } from './db-schema';
 import { chunkArray } from "./utils";
 
@@ -37,7 +37,6 @@ export async function addTweetsToDb(tweets: Tweet[]) {
         pfp: tweet.author.pfp,
         name: tweet.author.name,
         verified: tweet.author.verified,
-        followers: tweet.author.followers,
       })
       .onConflictDoUpdate({
         target: schema.twitterHandles.id,
@@ -47,7 +46,6 @@ export async function addTweetsToDb(tweets: Tweet[]) {
           pfp: tweet.author.pfp,
           name: tweet.author.name,
           verified: tweet.author.verified,
-          followers: tweet.author.followers,
           updated_at: new Date()
         }
       })
@@ -133,6 +131,32 @@ export async function addThreadsToDb(tweets: Tweet[]) {
       text: tweet.text,
       date: new Date(tweet.date),
     }).onConflictDoNothing();
+  }
+}
+
+export async function addTweetersToDb(tweeters: TwitterAuthor[]) {
+  const db = getDb();
+
+  for (const tweeter of tweeters) {
+    await db.update(schema.twitterHandles)
+      .set({
+        handle: tweeter.handle,
+        url: tweeter.url,
+        pfp: tweeter.pfp,
+        name: tweeter.name,
+        verified: tweeter.verified,
+        description: tweeter.description,
+        updated_at: new Date()
+      })
+      .where(eq(schema.twitterHandles.id, BigInt(tweeter.id)));
+
+    await db.insert(schema.twitterFollowers)
+      .values({
+        handle_id: BigInt(tweeter.id),
+        followers: tweeter.followers!,
+        created_at: new Date(),
+        updated_at: new Date()
+      });
   }
 }
 

@@ -44,15 +44,21 @@ processJobs().catch(error => {
 });
 
 // Schedule the daily cron job to run at midnight (00:00)
-const cronJob = cron.schedule('0 0 * * *', async () => {
+const scrapeCronJob = cron.schedule('0 0 * * *', async () => {
   console.log('Running daily Twitter scrape job scheduler');
   await cronJobService.scheduleDailyTwitterScrapeJobs();
+});
+
+const followerUpdateCronJob = cron.schedule('0 */6 * * *', async () => {
+  console.log('Running daily Twitter follower update job scheduler');
+  await cronJobService.scheduleFollowerUpdateJobs();
 });
 
 const start = async () => {
   try {
     // Start the cron job
-    cronJob.start();
+    scrapeCronJob.start();
+    followerUpdateCronJob.start();
     console.log('Cron job started');
 
     await server.listen({

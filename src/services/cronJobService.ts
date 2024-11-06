@@ -1,9 +1,9 @@
 import { TwitterScraperService } from './twitterScraperService';
-import { getJobById, updateJobStatus, getTwitterHandles, addJobToDb, getSomeTweets, addTweetsToDb, addThreadsToDb } from '../lib/drizzle';
-import { Job, Tweet, TwitterScrapeType } from '../lib/types';
+import { getJobById, updateJobStatus, getTwitterHandles, addJobToDb, getSomeTweets, addTweetsToDb, addThreadsToDb, addTweetersToDb } from '../lib/drizzle';
+import { Job, Tweet, TwitterAuthor, TwitterScrapeType } from '../lib/types';
 import { TwitterImportService } from './twitterImportService';
 import { runApifyActor } from '../lib/apify';
-import { APIFY_TWEET_SCRAPER_ACTOR } from '../lib/constant';
+import { APIFY_FOLLOWER_UPDATE_ACTOR, APIFY_TWEET_SCRAPER_ACTOR } from '../lib/constant';
 import { chunkArray, getSinceDate } from '../lib/utils';
 
 export class CronJobService {
@@ -51,15 +51,50 @@ export class CronJobService {
     }
   }
 
-  async scheduleThreadImportJobs(): Promise<void> {
-    const tweets = await getSomeTweets();
+  async scheduleFollowerUpdateJobs(): Promise<void> {
+    try {
+      const handles = await getTwitterHandles();
+      let batches = chunkArray(handles, 100);
 
-    const tweetBatches = chunkArray(tweets.map((tweet) => tweet.url), 100);
+      if (batches.length > 1 && batches[batches.length - 1].length < 5) {
+        const lastBatch = batches.pop()!;
+        batches[batches.length - 1].push(...lastBatch); 
+      }
 
-    for (const batch of tweetBatches) {
-      await this.twitterImportService.importTweets(batch);
+      for (const batch of batches) {
+        const input = {
+          "getFollowers": false,
+          "getFollowing": false,
+          "getRetweeters": false,
+          "includeUnavailableUsers": false,
+          "twitterHandles": batch,
+        };
+
+        await addJobToDb({
+          id: crypto.randomUUID(),
+          status: 'pending',
+          type: 'follower_update',
+          params: JSON.stringify({ input: input, env: process.env.ENVIRONMENT }),
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+      }
+
+      console.log(`Scheduled ${batches.length} follower update jobs`);
+    } catch (error) {
+      console.error('Error scheduling follower update jobs:', error);
     }
   }
+
+  // async scheduleThreadImportJobs(): Promise<void> {
+  //   const tweets = await getSomeTweets();
+
+  //   const tweetBatches = chunkArray(tweets.map((tweet) => tweet.url), 100);
+
+  //   for (const batch of tweetBatches) {
+  //     await this.twitterImportService.importTweets(batch);
+  //   }
+  // }
 
   async processJob(jobId: string): Promise<void> {
     const job = await getJobById(jobId);
@@ -85,13 +120,18 @@ export class CronJobService {
       await updateJobStatus(jobId, 'running');
       switch (job.type) {
         case 'twitter_scrape': {
-          const tweets = await this.runJob(jobId, params.input);
+          const tweets = await this.runScrapeJob(jobId, params.input);
           await addTweetsToDb(tweets);
           break;
         }
         case 'thread_import': {
-          const tweets = await this.runJob(jobId, params.input);
+          const tweets = await this.runScrapeJob(jobId, params.input);
           await addThreadsToDb(tweets);
+          break;
+        }
+        case 'follower_update': {
+          const tweeters = await this.runFollowerUpdateJob(jobId, params.input);
+          await addTweetersToDb(tweeters);
           break;
         }
         default:
@@ -105,7 +145,31 @@ export class CronJobService {
     }
   }
 
-  async runJob(jobId: string, input: any): Promise<Tweet[]> {
+  async runFollowerUpdateJob(jobId: string, input: any): Promise<TwitterAuthor[]> {
+    try {
+      await updateJobStatus(jobId, 'running');
+
+      const result = await runApifyActor(APIFY_FOLLOWER_UPDATE_ACTOR, input);
+      const tweeters = result.filter((item: any) => item.id).map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        handle: item.userName,
+        pfp: item.profilePicture,
+        url: item.url,
+        description: item.description,
+        verified: item.isVerified,
+        followers: item.followers,
+      }));
+
+      return tweeters;
+    } catch (error) {
+      console.error('Error in runFollowerUpdateJob:', error);
+      await updateJobStatus(jobId, 'failed');
+      return [];
+    }
+  }
+
+  async runScrapeJob(jobId: string, input: any): Promise<Tweet[]> {
     try {
       await updateJobStatus(jobId, 'running');
 

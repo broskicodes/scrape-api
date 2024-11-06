@@ -86,8 +86,8 @@ export const twitterHandles = pgTable("twitter_handles", {
   handle: text("handle").notNull().unique(),
   name: text("name").notNull().default(""),
   verified: boolean("verified").notNull().default(false),
-  followers: integer("followers").notNull().default(0),
   url: text("url").notNull(),
+  description: text("description"),
   pfp: text("pfp"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
@@ -181,4 +181,14 @@ export const threads = pgTable("threads", {
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   deleted_at: timestamp("deleted_at"),
+});
+
+export const twitterFollowers = pgTable("twitter_followers", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  handle_id: bigint("handle_id", { mode: "bigint" })
+    .references(() => twitterHandles.id)
+    .notNull(),
+  followers: integer("followers").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
