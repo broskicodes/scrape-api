@@ -14,7 +14,7 @@ export function getSinceDate(scrapeType: TwitterScrapeType): string {
   
     switch (scrapeType) {
       case TwitterScrapeType.Initialize:
-        sinceDate = new Date('2024-10-01T00:00:00Z');
+        sinceDate = new Date('2023-01-01T00:00:00Z');
         break;
       case TwitterScrapeType.Monthly:
         sinceDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));

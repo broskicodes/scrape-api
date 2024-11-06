@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from 'pg';
 import * as schema from './db-schema';
-import { desc, eq, gte, isNull } from 'drizzle-orm';
+import { desc, eq, gte, isNull, and } from 'drizzle-orm';
 import { Job, JobStatus, Tweet, SearchFilters, TweetEntity, TwitterAuthor } from './types';
 import { jobs, searches } from './db-schema';
 import { chunkArray } from "./utils";
@@ -158,6 +158,23 @@ export async function addTweetersToDb(tweeters: TwitterAuthor[]) {
         updated_at: new Date()
       });
   }
+}
+
+export async function getHandleForSubscribedUsers(): Promise<string[]> {
+  const db = getDb();
+  const handles = await db
+    .select({ handle: schema.twitterHandles.handle })
+    .from(schema.twitterHandles)
+    .innerJoin(schema.users, eq(schema.users.twitter_handle_id, schema.twitterHandles.id))
+    .innerJoin(schema.subscriptions, eq(schema.subscriptions.user_id, schema.users.id))
+    .where(
+      and(
+        isNull(schema.users.deleted_at),
+        eq(schema.subscriptions.active, true)
+      )
+    );
+
+  return handles.map(h => h.handle);
 }
 
 export async function getTwitterHandles(): Promise<string[]> {
