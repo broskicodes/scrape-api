@@ -29,7 +29,7 @@ export const twitterSearchSchema = {
           minRetweets: { type: 'string' },
           dateRange: {
             type: 'string',
-            enum: ['24h', '7d', '28d']
+            enum: ['24h', '7d', '28d', 'all']
           }
         }
       }

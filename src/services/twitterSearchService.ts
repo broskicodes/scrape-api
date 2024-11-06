@@ -17,6 +17,10 @@ export class TwitterSearchService {
       case '28d':
         now.setDate(now.getDate() - 28);
         break;
+      case 'all':
+        now.setFullYear(2023, 0, 1); // Jan 1, 2023
+        now.setHours(0, 0, 0, 0);
+        return '';
       default:
         return '';
     }
@@ -30,7 +34,7 @@ export class TwitterSearchService {
   }
 
   private buildSearchQuery(query: string, filters: SearchFilters): string {
-    let searchQuery = query;
+    let searchQuery = `"${query}"`;
 
     // Build search query with filters
     if (filters) {
