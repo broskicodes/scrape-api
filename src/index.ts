@@ -9,6 +9,7 @@ import cron from 'node-cron';
 import { getNextPendingJob } from './lib/drizzle';
 import { setTimeout } from 'timers/promises';
 import { TwitterUsersService } from './services/twitterUsersService';
+import { TwitterScrapeType } from './lib/types';
 
 const server = Fastify({
   logger: true
@@ -70,6 +71,7 @@ const start = async () => {
     console.log(`Server listening on http://localhost:${config.port}`);
 
     // await twitterUsersService.importUsers(['levelsio']);
+    // await cronJobService.scheduleDailyTwitterScrapeJobs(TwitterScrapeType.Initialize);
   } catch (err) {
     server.log.error(err);
     process.exit(1);

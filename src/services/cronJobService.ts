@@ -19,6 +19,7 @@ export class CronJobService {
     try {
       // Fetch all handles from the twitterHandles table
       const handles = await getHandleForSubscribedUsers();
+      // const handles = await getTwitterHandles();
 
       // Group handles into batches of 10
       const handleBatches = chunkArray(handles, 10);
@@ -39,6 +40,7 @@ export class CronJobService {
           params: JSON.stringify({
             input: input,
             env: process.env.ENVIRONMENT
+            // env: 'production'
           }),
           created_at: new Date(),
           updated_at: new Date(),

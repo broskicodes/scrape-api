@@ -133,7 +133,7 @@ export async function addTweetsToDb(tweets: Tweet[]) {
     for (const batch of batches) {
       await addJobToDb({
         id: crypto.randomUUID(),
-        status: 'pending',
+        status: 'failed',
         type: 'thread_import',
         params: JSON.stringify({ input: { searchTerms: batch }, env: process.env.ENVIRONMENT }),
         created_at: new Date(),
