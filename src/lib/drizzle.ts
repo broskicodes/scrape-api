@@ -22,6 +22,38 @@ export function getDb() {
   return drizzle(pool, { schema });
 }
 
+export async function addHandlesToDb(handles: TwitterAuthor[]) {
+  const db = getDb();
+  for (const handle of handles) {
+    await db.insert(schema.twitterHandles).values({
+      id: BigInt(handle.id),
+      handle: handle.handle,
+      url: handle.url,
+      pfp: handle.pfp,
+      name: handle.name,
+      verified: handle.verified,
+    }).onConflictDoUpdate({
+      target: schema.twitterHandles.id,
+      set: {
+        handle: handle.handle,
+        url: handle.url,
+        pfp: handle.pfp,
+        name: handle.name,
+        verified: handle.verified,
+        updated_at: new Date()
+      }
+    });
+
+    await db.insert(schema.twitterFollowers)
+      .values({
+        handle_id: BigInt(handle.id),
+        followers: handle.followers!,
+        created_at: new Date(),
+        updated_at: new Date()
+      });
+  }
+}
+
 export async function addTweetsToDb(tweets: Tweet[]) {
   const db = getDb();
 
@@ -37,6 +69,7 @@ export async function addTweetsToDb(tweets: Tweet[]) {
         pfp: tweet.author.pfp,
         name: tweet.author.name,
         verified: tweet.author.verified,
+        description: tweet.author.description,
       })
       .onConflictDoUpdate({
         target: schema.twitterHandles.id,
@@ -46,6 +79,7 @@ export async function addTweetsToDb(tweets: Tweet[]) {
           pfp: tweet.author.pfp,
           name: tweet.author.name,
           verified: tweet.author.verified,
+          description: tweet.author.description,
           updated_at: new Date()
         }
       })

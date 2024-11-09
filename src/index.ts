@@ -8,12 +8,14 @@ import { CronJobService } from './services/cronJobService';
 import cron from 'node-cron';
 import { getNextPendingJob } from './lib/drizzle';
 import { setTimeout } from 'timers/promises';
+import { TwitterUsersService } from './services/twitterUsersService';
 
 const server = Fastify({
   logger: true
 });
 
 const cronJobService = new CronJobService();
+const twitterUsersService = new TwitterUsersService();
 
 // Register plugins
 server.register(cors);
@@ -66,6 +68,8 @@ const start = async () => {
       host: '0.0.0.0'
     });
     console.log(`Server listening on http://localhost:${config.port}`);
+
+    // await twitterUsersService.importUsers(['levelsio']);
   } catch (err) {
     server.log.error(err);
     process.exit(1);

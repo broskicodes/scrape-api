@@ -3,7 +3,7 @@ import { getJobById, updateJobStatus, getTwitterHandles, addJobToDb, getSomeTwee
 import { Job, Tweet, TwitterAuthor, TwitterScrapeType } from '../lib/types';
 import { TwitterImportService } from './twitterImportService';
 import { runApifyActor } from '../lib/apify';
-import { APIFY_FOLLOWER_UPDATE_ACTOR, APIFY_TWEET_SCRAPER_ACTOR } from '../lib/constant';
+import { APIFY_TWITTER_USER_ACTOR, APIFY_TWEET_SCRAPER_ACTOR } from '../lib/constant';
 import { chunkArray, getSinceDate } from '../lib/utils';
 
 export class CronJobService {
@@ -149,7 +149,7 @@ export class CronJobService {
     try {
       await updateJobStatus(jobId, 'running');
 
-      const result = await runApifyActor(APIFY_FOLLOWER_UPDATE_ACTOR, input);
+      const result = await runApifyActor(APIFY_TWITTER_USER_ACTOR, input);
       const tweeters = result.filter((item: any) => item.id).map((item: any) => ({
         id: item.id,
         name: item.name,
