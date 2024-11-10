@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from 'pg';
 import * as schema from './db-schema';
-import { desc, eq, gte, isNull, and } from 'drizzle-orm';
+import { desc, eq, gte, isNull, and, sql } from 'drizzle-orm';
 import { Job, JobStatus, Tweet, SearchFilters, TweetEntity, TwitterAuthor } from './types';
 import { jobs, searches } from './db-schema';
 import { chunkArray } from "./utils";
@@ -133,7 +133,7 @@ export async function addTweetsToDb(tweets: Tweet[]) {
     for (const batch of batches) {
       await addJobToDb({
         id: crypto.randomUUID(),
-        status: 'failed',
+        status: 'pending',
         type: 'thread_import',
         params: JSON.stringify({ input: { searchTerms: batch }, env: process.env.ENVIRONMENT }),
         created_at: new Date(),
@@ -252,7 +252,13 @@ export async function getJobById(jobId: string): Promise<Job | undefined> {
 
 export async function getNextPendingJob(): Promise<Job | undefined> {
   const db = getDb();
-  const result = await db.select().from(jobs).where(eq(jobs.status, 'pending')).limit(1);
+  const result = await db.select().from(jobs).where(
+    and(
+      eq(jobs.status, 'pending'),
+      sql`${jobs.params}::text LIKE ${`%${process.env.ENVIRONMENT}%`}`
+    )
+  ).limit(1);
+
   return result[0];
 }
 
