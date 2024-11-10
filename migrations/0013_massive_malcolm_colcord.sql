@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD CONSTRAINT "profiles_handle_id_unique" UNIQUE("handle_id");

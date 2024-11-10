@@ -9,6 +9,7 @@ import {
   integer,
   bigint,
   boolean,
+  vector,
 } from "drizzle-orm/pg-core";
 
 export const blogposts = pgTable("blogposts", {
@@ -191,4 +192,19 @@ export const twitterFollowers = pgTable("twitter_followers", {
   followers: integer("followers").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const profiles = pgTable("profiles", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  handle_id: bigint("handle_id", { mode: "bigint" })
+    .references(() => twitterHandles.id)
+    .notNull()
+    .unique(),
+  persona: text("persona").notNull(),
+  target_audience: text("target_audience").notNull(),
+  content_pillars: jsonb("content_pillars").notNull(),
+  embedding: vector("embedding", { dimensions: 384 }),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
 });
