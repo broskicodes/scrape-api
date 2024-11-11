@@ -1,5 +1,6 @@
 export enum TwitterScrapeType {
     Initialize = "initialize",
+    Micro = "micro",
     Monthly = "monthly",
     Weekly = "weekly",
     Daily = "daily",
