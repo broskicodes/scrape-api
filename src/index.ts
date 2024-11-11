@@ -52,7 +52,7 @@ const scrapeCronJob = cron.schedule('0 0 * * *', async () => {
   await cronJobService.scheduleDailyTwitterScrapeJobs();
 });
 
-const followerUpdateCronJob = cron.schedule('0 */6 * * *', async () => {
+const followerUpdateCronJob = cron.schedule('0 */12 * * *', async () => {
   console.log('Running daily Twitter follower update job scheduler');
   await cronJobService.scheduleFollowerUpdateJobs();
 });
