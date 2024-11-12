@@ -26,7 +26,7 @@ export function getSinceDate(scrapeType: TwitterScrapeType): string {
         break;
       case TwitterScrapeType.Daily:
         sinceDate = new Date(now);
-        sinceDate.setUTCHours(0, 0, 0, 0);
+        sinceDate.setUTCHours(now.getUTCHours() - 24, now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
         break;
       case TwitterScrapeType.Update:
         sinceDate = new Date(now);
