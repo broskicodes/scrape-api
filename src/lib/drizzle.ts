@@ -136,7 +136,7 @@ export async function addTweetsToDb(tweets: Tweet[]) {
   }
 
   if (searchTerms.length > 0) {
-    const batches = chunkArray(searchTerms, 50);
+    const batches = chunkArray(searchTerms, 100);
 
     for (const batch of batches) {
       await addJobToDb({
