@@ -31,7 +31,7 @@ server.register(routes);
 server.setErrorHandler(errorHandler);
 
 async function createJobWorker() {
-  const worker = new Worker(path.join(__dirname, 'workers/jobWorker.ts'));
+  const worker = new Worker(path.join(__dirname, 'workers/jobWorker.js'));
   
   while (true) {
     const job = await getNextPendingJob();
