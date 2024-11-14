@@ -6,14 +6,22 @@ import { Job, JobStatus, Tweet, SearchFilters, TweetEntity, TwitterAuthor } from
 import { jobs, searches } from './db-schema';
 import { chunkArray } from "./utils";
 
+let pool: Pool | null = null;
+
 // Function to get or create Pool
 function getPool(): Pool {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not set in the environment variables');
   }
-  return new Pool({
-    connectionString: process.env.DATABASE_URL,
-  });
+  
+  if (!pool) {
+    pool = new Pool({
+      max: 20,
+      connectionString: process.env.DATABASE_URL,
+    });
+  }
+  
+  return pool;
 }
 
 // Function to get or create db

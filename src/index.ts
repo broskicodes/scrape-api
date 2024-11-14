@@ -10,6 +10,8 @@ import { getNextPendingJob } from './lib/drizzle';
 import { setTimeout } from 'timers/promises';
 import { TwitterUsersService } from './services/twitterUsersService';
 import { TwitterScrapeType } from './lib/types';
+import { Worker } from 'worker_threads';
+import os from 'os';
 
 const server = Fastify({
   logger: true
@@ -27,24 +29,40 @@ server.register(routes);
 // Error handler
 server.setErrorHandler(errorHandler);
 
-async function processJobs() {
+async function createJobWorker() {
+  const worker = new Worker('./src/workers/jobWorker.ts');
+  
   while (true) {
     const job = await getNextPendingJob();
     if (job) {
-      await cronJobService.processJob(job.id);
-      // Immediately check for the next job
+      worker.postMessage(job.id);
+      // Wait for job completion
+      await new Promise((resolve, reject) => {
+        worker.once('message', (result) => {
+          if (result.success) resolve(result);
+          else reject(result.error);
+        });
+      });
       continue;
     }
-    // If no job is found, wait for 5 seconds before checking again
     await setTimeout(10000);
   }
 }
 
-// Start the job processing loop
-processJobs().catch(error => {
-  console.error('Job processing error:', error);
-  // Implement proper error handling and potentially restart the loop
-});
+async function startWorkerPool() {
+  const numWorkers = Math.min(os.cpus().length, 5);
+  
+  const workers = Array(numWorkers).fill(null).map((_, i) => {
+    console.log(`Starting worker ${i + 1}`);
+    
+    return createJobWorker().catch(error => {
+      console.error('Worker error:', error);
+      return Promise.resolve();
+    });
+  });
+
+  return Promise.all(workers);
+}
 
 // Schedule the daily cron job to run at midnight (00:00)
 const scrapeCronJob = cron.schedule('0 0 * * *', async () => {
@@ -72,6 +90,11 @@ const start = async () => {
 
     // await twitterUsersService.importUsers(['levelsio']);
     // await cronJobService.scheduleDailyTwitterScrapeJobs();
+
+    startWorkerPool().catch(error => {
+      console.error('Worker pool error:', error);
+      process.exit(1);
+    });
   } catch (err) {
     server.log.error(err);
     process.exit(1);
