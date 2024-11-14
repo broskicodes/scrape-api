@@ -12,6 +12,7 @@ import { TwitterUsersService } from './services/twitterUsersService';
 import { TwitterScrapeType } from './lib/types';
 import { Worker } from 'worker_threads';
 import os from 'os';
+import path from 'path';
 
 const server = Fastify({
   logger: true
@@ -30,7 +31,7 @@ server.register(routes);
 server.setErrorHandler(errorHandler);
 
 async function createJobWorker() {
-  const worker = new Worker('./src/workers/jobWorker.ts');
+  const worker = new Worker(path.join(__dirname, 'workers/jobWorker.ts'));
   
   while (true) {
     const job = await getNextPendingJob();
