@@ -211,6 +211,16 @@ export async function getHandleForSubscribedUsers(): Promise<string[]> {
   return handles.map(h => h.handle);
 }
 
+export async function getTwitterHandlesWithProfiles(): Promise<string[]> {
+  const db = getDb();
+  const handles = await db.select({ handle: schema.twitterHandles.handle })
+    .from(schema.twitterHandles)
+    .innerJoin(schema.profiles, eq(schema.profiles.handle_id, schema.twitterHandles.id))
+    .where(isNull(schema.twitterHandles.deleted_at));
+
+  return handles.map(h => h.handle);
+}
+
 export async function getTwitterHandles(): Promise<string[]> {
   const db = getDb();
   const handles = (await db.select({ handle: schema.twitterHandles.handle })

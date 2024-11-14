@@ -71,7 +71,7 @@ const start = async () => {
     console.log(`Server listening on http://localhost:${config.port}`);
 
     // await twitterUsersService.importUsers(['levelsio']);
-    // await cronJobService.scheduleDailyTwitterScrapeJobs(TwitterScrapeType.Initialize);
+    // await cronJobService.scheduleDailyTwitterScrapeJobs();
   } catch (err) {
     server.log.error(err);
     process.exit(1);

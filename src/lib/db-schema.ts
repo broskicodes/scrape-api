@@ -103,6 +103,7 @@ export const users = pgTable("users", {
     .references(() => twitterHandles.id)
     .notNull()
     .unique(),
+  onboarded: boolean("onboarded").notNull().default(false),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   deleted_at: timestamp("deleted_at"),
@@ -207,4 +208,25 @@ export const profiles = pgTable("profiles", {
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   deleted_at: timestamp("deleted_at"),
+});
+
+export const chats = pgTable("chats", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  user_id: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  type: text("type").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
+});
+
+export const chatMessages = pgTable("chat_messages", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  chat_id: uuid("chat_id")
+    .references(() => chats.id)
+    .notNull(),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
 });

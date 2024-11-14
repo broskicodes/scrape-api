@@ -1,5 +1,5 @@
 import { TwitterScraperService } from './twitterScraperService';
-import { getJobById, updateJobStatus, getTwitterHandles, addJobToDb, getSomeTweets, addTweetsToDb, addThreadsToDb, addTweetersToDb, getHandleForSubscribedUsers } from '../lib/drizzle';
+import { getJobById, updateJobStatus, getTwitterHandles, addJobToDb, getSomeTweets, addTweetsToDb, addThreadsToDb, addTweetersToDb, getHandleForSubscribedUsers, getTwitterHandlesWithProfiles } from '../lib/drizzle';
 import { Job, Tweet, TwitterAuthor, TwitterScrapeType } from '../lib/types';
 import { TwitterImportService } from './twitterImportService';
 import { runApifyActor } from '../lib/apify';
@@ -18,11 +18,11 @@ export class CronJobService {
   async scheduleDailyTwitterScrapeJobs(type?: TwitterScrapeType): Promise<void> {
     try {
       // Fetch all handles from the twitterHandles table
-      const handles = await getHandleForSubscribedUsers();
+      const handles = await getTwitterHandlesWithProfiles();
       // const handles = await getTwitterHandles();
 
       // Group handles into batches of 10
-      const handleBatches = chunkArray(handles, 10);
+      const handleBatches = chunkArray(handles, 50);
 
       // Create a job for each batch
       for (const batch of handleBatches) {
