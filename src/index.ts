@@ -76,11 +76,17 @@ const followerUpdateCronJob = cron.schedule('0 */12 * * *', async () => {
   await cronJobService.scheduleFollowerUpdateJobs();
 });
 
+const weeklyScrapeCronJob = cron.schedule('0 0 * * 0', async () => {
+  console.log('Running weekly Twitter scrape job scheduler');
+  await cronJobService.scheduleWeeklyTwitterScrapeJobs();
+});
+
 const start = async () => {
   try {
     // Start the cron job
     scrapeCronJob.start();
     followerUpdateCronJob.start();
+    weeklyScrapeCronJob.start();
     console.log('Cron job started');
 
     await server.listen({

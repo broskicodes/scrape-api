@@ -18,17 +18,20 @@ export class CronJobService {
   async scheduleDailyTwitterScrapeJobs(type?: TwitterScrapeType): Promise<void> {
     try {
       // Fetch all handles from the twitterHandles table
-      const handles = await getTwitterHandlesWithProfiles();
+      const handles = await getHandleForSubscribedUsers();
       // const handles = await getTwitterHandles();
 
       // Group handles into batches of 10
       const handleBatches = chunkArray(handles, 50);
 
       // Create a job for each batch
+      const sinceDate = getSinceDate(type || TwitterScrapeType.Update);
+
       for (const batch of handleBatches) {
-        const sinceDate = getSinceDate(type || TwitterScrapeType.Update);
         const input = {
-          "searchTerms": batch.map((handle: string) => `from:${handle} since:${sinceDate} -filter:replies`),
+          "searchTerms": batch.map((handle: string) => 
+            `from:${handle} since:${sinceDate} -filter:replies`
+          ),
           "sort": "Latest",
           "tweetLanguage": "en",
         };
@@ -50,6 +53,42 @@ export class CronJobService {
       console.log(`Scheduled ${handleBatches.length} Twitter scrape jobs`);
     } catch (error) {
       console.error('Error scheduling daily Twitter scrape jobs:', error);
+    }
+  }
+
+  async scheduleWeeklyTwitterScrapeJobs(): Promise<void> {
+    try {
+      const handles = await getTwitterHandlesWithProfiles();
+      const handleBatches = chunkArray(handles, 50);
+
+      const sinceDate = getSinceDate(TwitterScrapeType.Weekly);
+
+      for (const batch of handleBatches) {
+        // Get tweets from the last 7 days
+        const input = {
+          "searchTerms": batch.map((handle: string) => 
+            `from:${handle} since:${sinceDate} -filter:replies`
+          ),
+          "sort": "Latest",
+          "tweetLanguage": "en",
+        };
+
+        await addJobToDb({
+          id: crypto.randomUUID(),
+          status: 'pending',
+          type: 'twitter_scrape',
+          params: JSON.stringify({
+            input,
+            env: process.env.ENVIRONMENT
+          }),
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+      }
+
+      console.log(`Scheduled ${handleBatches.length} weekly Twitter scrape jobs`);
+    } catch (error) {
+      console.error('Error scheduling weekly Twitter scrape jobs:', error);
     }
   }
 
