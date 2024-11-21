@@ -16,10 +16,10 @@ export const twitterUsersSchema = {
     200: {
       type: 'object',
       properties: {
-        message: { type: 'string' },
-        jobId: { type: 'string' }
+        success: { type: 'boolean' },
+        users: { type: 'array', items: { type: 'object' } }
       },
-      required: ['message', 'jobId']
+      required: ['success', 'users']
     }
   }
 }; 

@@ -5,8 +5,6 @@ import { runApifyActor } from '../lib/apify';
 import { APIFY_TWITTER_USER_ACTOR } from '../lib/constant';
 
 export class TwitterUsersService {
-  
-
   async importUsers(handles: string[]) {
     try {      
       const input = {
@@ -15,7 +13,7 @@ export class TwitterUsersService {
         "getRetweeters": false,
         "includeUnavailableUsers": false,
         // "maxItems": 10000,
-        "twitterHandles": handles
+        "twitterHandles": handles.length >= 5 ? handles : Array(5).fill(handles).flat()
       }
 
       const result = await runApifyActor(APIFY_TWITTER_USER_ACTOR, input);
@@ -33,7 +31,10 @@ export class TwitterUsersService {
           followers: user.followers
         }));
 
-      await addHandlesToDb(users);
+      const uniqueUsers = users.filter((user, index, self) =>
+        index === self.findIndex((u) => u.handle === user.handle)
+      );
+      await addHandlesToDb(uniqueUsers);
     
       console.log(users.length);
 
