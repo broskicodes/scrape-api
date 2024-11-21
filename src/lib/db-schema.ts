@@ -230,3 +230,9 @@ export const chatMessages = pgTable("chat_messages", {
   content: text("content").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const freeloaders = pgTable("freeloaders", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  handle: text("handle").notNull().unique(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
