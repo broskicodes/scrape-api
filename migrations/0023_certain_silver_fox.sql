@@ -1,0 +1,1 @@
+ALTER TABLE "users" DROP COLUMN IF EXISTS "access_token_expires_at";

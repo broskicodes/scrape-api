@@ -94,7 +94,7 @@ export class CronJobService {
 
   async scheduleFollowerUpdateJobs(): Promise<void> {
     try {
-      const handles = await getTwitterHandles();
+      const handles = await getHandleForSubscribedUsers();
       let batches = chunkArray(handles, 100);
 
       if (batches.length > 1 && batches[batches.length - 1].length < 5) {

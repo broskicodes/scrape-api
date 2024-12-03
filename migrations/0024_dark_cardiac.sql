@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "resend_contact_id" uuid;

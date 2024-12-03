@@ -104,6 +104,9 @@ export const users = pgTable("users", {
     .notNull()
     .unique(),
   onboarded: boolean("onboarded").notNull().default(false),
+  oauth_token: text("oauth_token"),
+  oauth_token_secret: text("oauth_token_secret"),
+  resend_contact_id: uuid("resend_contact_id"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   deleted_at: timestamp("deleted_at"),
@@ -145,7 +148,7 @@ export const jobs = pgTable("jobs", {
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const subscriptionType = pgEnum("subscription_type", ["lifetime"]);
+export const subscriptionType = pgEnum("subscription_type", ["lifetime", "monthly"]);
 
 export const subscriptions = pgTable("subscriptions", {
   id: text("id").primaryKey().notNull(),
@@ -235,4 +238,20 @@ export const freeloaders = pgTable("freeloaders", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
   handle: text("handle").notNull().unique(),
   created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const tweetDraftStatus = pgEnum("tweet_draft_status", ["draft", "scheduled", "posted"]);
+
+export const tweetDrafts = pgTable("tweet_drafts", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
+  user_id: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  tweet_boxes: jsonb("tweet_boxes").notNull(),
+  status: text("status").notNull().default("draft"),
+  posted_at: timestamp("posted_at"),
+  scheduled_for: timestamp("scheduled_for"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
 });

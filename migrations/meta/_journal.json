@@ -113,6 +113,69 @@
       "when": 1732226387061,
       "tag": "0015_known_beyonder",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1732730600206,
+      "tag": "0016_talented_maelstrom",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1732732013615,
+      "tag": "0017_silly_madame_masque",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1732758918444,
+      "tag": "0018_light_micromax",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1732825442872,
+      "tag": "0019_daffy_dark_beast",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1732826024661,
+      "tag": "0020_nebulous_mach_iv",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1732895028285,
+      "tag": "0021_faithful_karen_page",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1732921240273,
+      "tag": "0022_remarkable_franklin_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1732921292843,
+      "tag": "0023_certain_silver_fox",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1733015577855,
+      "tag": "0024_dark_cardiac",
+      "breakpoints": true
     }
   ]
 }

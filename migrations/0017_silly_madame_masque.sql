@@ -1,0 +1,1 @@
+ALTER TABLE "tweet_drafts" ADD COLUMN "status" "tweet_draft_status" NOT NULL;
