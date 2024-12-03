@@ -7,14 +7,6 @@ import { APIFY_TWITTER_USER_ACTOR, APIFY_TWEET_SCRAPER_ACTOR } from '../lib/cons
 import { chunkArray, getSinceDate } from '../lib/utils';
 
 export class CronJobService {
-  private twitterScraperService: TwitterScraperService;
-  private twitterImportService: TwitterImportService;
-
-  constructor() {
-    this.twitterScraperService = new TwitterScraperService();
-    this.twitterImportService = new TwitterImportService();
-  }
-
   async scheduleDailyTwitterScrapeJobs(type?: TwitterScrapeType): Promise<void> {
     try {
       // Fetch all handles from the twitterHandles table
@@ -213,6 +205,7 @@ export class CronJobService {
   async runScrapeJob(jobId: string, input: any): Promise<Tweet[]> {
     try {
       await updateJobStatus(jobId, 'running');
+      console.log('Running scrape job', jobId);
 
       const result = await runApifyActor(APIFY_TWEET_SCRAPER_ACTOR, input);
 

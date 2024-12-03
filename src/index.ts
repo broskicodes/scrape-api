@@ -8,21 +8,20 @@ import { CronJobService } from './services/cronJobService';
 import cron from 'node-cron';
 import { getNextPendingJob } from './lib/drizzle';
 import { setTimeout } from 'timers/promises';
-import { TwitterUsersService } from './services/twitterUsersService';
-import { TwitterScrapeType } from './lib/types';
 import { Worker } from 'worker_threads';
 import os from 'os';
 import path from 'path';
+import websocketPlugin from './plugins/websocket';
+import websocket from './plugins/websocket';
 
+const cronJobService = new CronJobService();
 const server = Fastify({
   logger: true
 });
 
-const cronJobService = new CronJobService();
-const twitterUsersService = new TwitterUsersService();
-
 // Register plugins
 server.register(cors);
+server.register(websocketPlugin);
 
 // Register routes
 server.register(routes);
