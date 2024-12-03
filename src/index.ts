@@ -12,7 +12,6 @@ import { Worker } from 'worker_threads';
 import os from 'os';
 import path from 'path';
 import websocketPlugin from './plugins/websocket';
-import websocket from './plugins/websocket';
 
 const cronJobService = new CronJobService();
 const server = Fastify({

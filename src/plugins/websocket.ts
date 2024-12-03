@@ -2,7 +2,68 @@ import fp from 'fastify-plugin';
 import websocket from '@fastify/websocket';
 import { FastifyInstance } from 'fastify';
 import { WebSocket } from 'ws';
-import { TwitterScraperService } from '../services/twitterScraperService';
+import { Worker } from 'worker_threads';
+import path from 'path';
+
+interface WorkerWithAvailability extends Worker {
+  isAvailable: boolean;
+}
+
+export class WorkerPool {
+  private workers: WorkerWithAvailability[] = [];
+  private taskQueue: { task: any, resolve: Function, reject: Function }[] = [];
+  private readonly maxWorkers: number;
+
+  constructor(maxWorkers = navigator.hardwareConcurrency) {
+    this.maxWorkers = maxWorkers;
+    this.initializeWorkers();
+  }
+
+  private initializeWorkers() {
+    for (let i = 0; i < this.maxWorkers; i++) {
+      const worker = new Worker(path.join(__dirname, '../workers/scrapeWorker.js')) as WorkerWithAvailability;
+
+      worker.on('message', (result) => {
+        worker.isAvailable = true;
+        this.processNextTask();
+        this.taskQueue[0]?.resolve(result);
+        this.taskQueue.shift();
+      });
+      worker.on('error', (error) => {
+        console.error('Worker error:', error);
+        worker.isAvailable = true;
+        this.processNextTask();
+        this.taskQueue[0]?.reject(error);
+        this.taskQueue.shift();
+      });
+      worker.isAvailable = true;
+      this.workers.push(worker);
+      console.log(`Worker ${i} initialized`);
+    }
+  }
+
+  private processNextTask() {
+    if (this.taskQueue.length === 0) return;
+    
+    const availableWorker = this.workers.find(w => w.isAvailable);
+    if (!availableWorker) return;
+
+    availableWorker.isAvailable = false;
+    const { task } = this.taskQueue[0];
+    availableWorker.postMessage(task);
+  }
+
+  runTask(scrapeType: string, handles: string[]): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.taskQueue.push({ 
+        task: { scrapeType, handles }, 
+        resolve, 
+        reject 
+      });
+      this.processNextTask();
+    });
+  }
+}
 
 export enum ClientMessageType {
     Scrape = "scrape",
@@ -27,6 +88,7 @@ interface WebSocketMessage {
 
 // Store active connections
 const connections = new Set<WebSocket>();
+const workerPool = new WorkerPool(5);
 
 export const broadcast = (message: WebSocketMessage) => {
   connections.forEach(socket => {
@@ -72,9 +134,8 @@ async function handleMessage(socket: WebSocket, message: ClientMessage) {
   console.log('Received message:', message);
   switch (message.type) {
     case ClientMessageType.Scrape:
-      const twitterScraperService = new TwitterScraperService();
       const { scrapeType, handles } = message.payload;
-      const success = await twitterScraperService.runScrapeJob(scrapeType, handles);
+      const success = await workerPool.runTask(scrapeType, handles);
 
       if (success) {
         socket.send(JSON.stringify({
