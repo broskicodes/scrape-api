@@ -6,7 +6,7 @@ import cors from './plugins/cors';
 import 'dotenv/config';
 import { CronJobService } from './services/cronJobService';
 import cron from 'node-cron';
-import { getNextPendingJob } from './lib/drizzle';
+import { getNextPendingJob, getNextScheduledPost } from './lib/drizzle';
 import { setTimeout } from 'timers/promises';
 import { Worker } from 'worker_threads';
 import os from 'os';
@@ -48,19 +48,48 @@ async function createJobWorker() {
   }
 }
 
+async function createPostWorker() {
+  const worker = new Worker(path.join(__dirname, 'workers/postWorker.js'));
+  
+  while (true) {
+    const draft = await getNextScheduledPost();
+    if (draft) {
+      worker.postMessage(draft.id);
+      // Wait for job completion
+      await new Promise((resolve, reject) => {
+        worker.once('message', (result) => {
+          if (result.success) resolve(result);
+          else reject(result.error);
+        });
+      });
+      continue;
+    }
+    await setTimeout(10000);
+  }
+}
+
 async function startWorkerPool() {
-  const numWorkers = Math.min(os.cpus().length, 5);
+  const numWorkers = Math.min(os.cpus().length, 1);
   
   const workers = Array(numWorkers).fill(null).map((_, i) => {
-    console.log(`Starting worker ${i + 1}`);
+    console.log(`Starting job worker ${i + 1}`);
     
     return createJobWorker().catch(error => {
-      console.error('Worker error:', error);
+      console.error('Job worker error:', error);
       return Promise.resolve();
     });
   });
 
-  return Promise.all(workers);
+  const postWorkers = Array(1).fill(null).map((_, i) => {
+    console.log(`Starting post worker ${i + 1}`);
+    
+    return createPostWorker().catch(error => {
+      console.error('Post worker error:', error);
+      return Promise.resolve();
+    });
+  });
+
+  return Promise.all(workers.concat(postWorkers));
 }
 
 // Schedule the daily cron job to run at midnight (00:00)

@@ -1,9 +1,9 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from 'pg';
 import * as schema from './db-schema';
-import { desc, eq, gte, isNull, and, sql } from 'drizzle-orm';
-import { Job, JobStatus, Tweet, SearchFilters, TweetEntity, TwitterAuthor } from './types';
-import { jobs, searches } from './db-schema';
+import { desc, eq, gte, isNull, and, sql, lte } from 'drizzle-orm';
+import { Job, JobStatus, Tweet, SearchFilters, TweetEntity, TwitterAuthor, Draft, TweetDraftStatus } from './types';
+import { jobs, searches, subscriptions, users } from './db-schema';
 import { chunkArray } from "./utils";
 
 let pool: Pool | null = null;
@@ -28,6 +28,18 @@ function getPool(): Pool {
 export function getDb() {
   const pool = getPool();
   return drizzle(pool, { schema });
+}
+
+export async function getUser(userId: string) {
+  const db = getDb();
+  return await db.query.users.findFirst({ where: eq(users.id, userId) });
+}
+
+export async function getUserSubscribed(userId: string) {
+  const db = getDb();
+  const subscription = await db.query.subscriptions.findFirst({ where: and(eq(subscriptions.user_id, userId), eq(subscriptions.active, true)) });
+
+  return subscription !== undefined;
 }
 
 export async function addHandlesToDb(handles: TwitterAuthor[]) {
@@ -300,4 +312,32 @@ export async function saveSearchToDb({ userId, query, filters }: SaveSearchParam
     .returning({ id: searches.id });
 
   return result.id;
+}
+
+export async function getNextScheduledPost(): Promise<Draft | undefined> {
+  const db = getDb();
+  const result = await db.select().from(schema.tweetDrafts).where(
+    and(
+      eq(schema.tweetDrafts.status, 'scheduled'),
+      lte(schema.tweetDrafts.scheduled_for, new Date())
+    )
+  ).limit(1);
+
+  return result[0] as Draft;
+}
+
+export async function getDraftById(draftId: string): Promise<Draft | undefined> {
+  const db = getDb();
+  const result = await db.select().from(schema.tweetDrafts).where(eq(schema.tweetDrafts.id, draftId));
+  return result[0] as Draft;
+}
+
+export async function updateDraftStatus(draftId: string, status: TweetDraftStatus) {
+  const db = getDb();
+  await db.update(schema.tweetDrafts).set({ status, updated_at: new Date() }).where(eq(schema.tweetDrafts.id, draftId));
+}
+
+export async function setDraftPosted(draftId: string) {
+  const db = getDb();
+  await db.update(schema.tweetDrafts).set({ status: 'posted', posted_at: new Date(), updated_at: new Date() }).where(eq(schema.tweetDrafts.id, draftId));
 }

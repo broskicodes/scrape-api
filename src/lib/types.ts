@@ -71,3 +71,28 @@ export enum TwitterScrapeType {
     minRetweets?: string;
     dateRange?: string;
   }
+
+  export interface MediaItem {
+    id: string;
+    url: string; // Local preview URL
+    s3Key: string; // S3 key
+    type: "image" | "video";
+    twitterMediaId?: string; // Set when uploaded to Twitter
+    file: File; // Original file for upload
+  }
+
+  export interface TweetBox {
+    id: string;
+    content: string;
+    media?: MediaItem[];
+  }
+  
+  export type TweetDraftStatus = "draft" | "scheduled" | "posting" | "posted" | "failed";
+  export interface Draft {
+    id: string;
+    user_id: string;
+    tweet_boxes: TweetBox[];
+    created_at: Date;
+    updated_at: Date;
+    status: TweetDraftStatus;
+  }

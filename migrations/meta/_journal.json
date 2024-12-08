@@ -176,6 +176,13 @@
       "when": 1733015577855,
       "tag": "0024_dark_cardiac",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1733681939410,
+      "tag": "0025_public_monster_badoon",
+      "breakpoints": true
     }
   ]
 }

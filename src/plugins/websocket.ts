@@ -125,7 +125,7 @@ export const broadcast = (message: WebSocketMessage) => {
 export default fp(async (fastify: FastifyInstance) => {
   // Register the websocket plugin first
   await fastify.register(websocket);
-  workerPool = new WorkerPool(5);
+  workerPool = new WorkerPool(2);
 
   fastify.get('/ws', { websocket: true }, (socket, req) => {
     connections.add(socket);

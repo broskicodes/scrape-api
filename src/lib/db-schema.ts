@@ -240,7 +240,7 @@ export const freeloaders = pgTable("freeloaders", {
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const tweetDraftStatus = pgEnum("tweet_draft_status", ["draft", "scheduled", "posted"]);
+export const tweetDraftStatus = pgEnum("tweet_draft_status", ["draft", "scheduled", "posting", "posted", "failed"]);
 
 export const tweetDrafts = pgTable("tweet_drafts", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
