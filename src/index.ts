@@ -69,7 +69,7 @@ async function createPostWorker() {
 }
 
 async function startWorkerPool() {
-  const numWorkers = Math.min(os.cpus().length, 1);
+  const numWorkers = Math.min(os.cpus().length, 2);
   
   const workers = Array(numWorkers).fill(null).map((_, i) => {
     console.log(`Starting job worker ${i + 1}`);
