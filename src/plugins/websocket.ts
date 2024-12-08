@@ -4,6 +4,7 @@ import { FastifyInstance } from 'fastify';
 import { WebSocket } from 'ws';
 import { Worker } from 'worker_threads';
 import path from 'path';
+import { TwitterScrapeType } from '../lib/types';
 
 interface WorkerWithAvailability extends Worker {
   isAvailable: boolean;
@@ -11,10 +12,11 @@ interface WorkerWithAvailability extends Worker {
 
 export class WorkerPool {
   private workers: WorkerWithAvailability[] = [];
-  private taskQueue: { task: any, resolve: Function, reject: Function }[] = [];
+  private taskQueue: { type: ClientMessageType, task: ClientMessagePayload, status: 'pending' | 'processing' | 'error', resolve: Function, reject: Function }[] = [];
   private readonly maxWorkers: number;
 
   constructor(maxWorkers = navigator.hardwareConcurrency) {
+    console.log('Initializing worker pool with', maxWorkers, 'workers');
     this.maxWorkers = maxWorkers;
     this.initializeWorkers();
   }
@@ -25,16 +27,16 @@ export class WorkerPool {
 
       worker.on('message', (result) => {
         worker.isAvailable = true;
-        this.processNextTask();
         this.taskQueue[0]?.resolve(result);
         this.taskQueue.shift();
+        this.processNextTask();
       });
       worker.on('error', (error) => {
         console.error('Worker error:', error);
         worker.isAvailable = true;
-        this.processNextTask();
         this.taskQueue[0]?.reject(error);
         this.taskQueue.shift();
+        this.processNextTask();
       });
       worker.isAvailable = true;
       this.workers.push(worker);
@@ -49,14 +51,19 @@ export class WorkerPool {
     if (!availableWorker) return;
 
     availableWorker.isAvailable = false;
-    const { task } = this.taskQueue[0];
-    availableWorker.postMessage(task);
+    const task = this.taskQueue.find(t => t.status === 'pending');
+    if (!task) return;
+
+    task.status = 'processing';
+    availableWorker.postMessage({ type: task.type, payload: task.task });
   }
 
-  runTask(scrapeType: string, handles: string[]): Promise<any> {
+  runTask(type: ClientMessageType, payload: ClientMessagePayload): Promise<any> {
     return new Promise((resolve, reject) => {
       this.taskQueue.push({ 
-        task: { scrapeType, handles }, 
+        type,
+        task: payload, 
+        status: 'pending',
         resolve, 
         reject 
       });
@@ -67,6 +74,8 @@ export class WorkerPool {
 
 export enum ClientMessageType {
     Scrape = "scrape",
+    Followers = "followers",
+    Users = "users",
 }
 
 export enum WebSocketMessageType {
@@ -74,6 +83,21 @@ export enum WebSocketMessageType {
     Success = "success",
     Error = "error",
 }
+
+export interface ScrapePayload {
+  scrapeType: TwitterScrapeType;
+  handles: string[];
+}
+
+export interface FollowersPayload {
+  handle: string;
+}
+
+export interface UsersPayload {
+  handles: string[];
+}
+
+export type ClientMessagePayload = ScrapePayload | FollowersPayload | UsersPayload;
 
 interface ClientMessage {
   id?: string;
@@ -88,7 +112,7 @@ interface WebSocketMessage {
 
 // Store active connections
 const connections = new Set<WebSocket>();
-const workerPool = new WorkerPool(5);
+let workerPool: WorkerPool;
 
 export const broadcast = (message: WebSocketMessage) => {
   connections.forEach(socket => {
@@ -101,6 +125,7 @@ export const broadcast = (message: WebSocketMessage) => {
 export default fp(async (fastify: FastifyInstance) => {
   // Register the websocket plugin first
   await fastify.register(websocket);
+  workerPool = new WorkerPool(5);
 
   fastify.get('/ws', { websocket: true }, (socket, req) => {
     connections.add(socket);
@@ -134,13 +159,13 @@ async function handleMessage(socket: WebSocket, message: ClientMessage) {
   console.log('Received message:', message);
   switch (message.type) {
     case ClientMessageType.Scrape:
-      const { scrapeType, handles } = message.payload;
-      const success = await workerPool.runTask(scrapeType, handles);
+      const success = await workerPool.runTask(message.type, message.payload);
 
       if (success) {
         socket.send(JSON.stringify({
           messageId: message.id,
           type: WebSocketMessageType.Success,
+          clientMessageType: message.type,
           payload: 'Tweets scraped successfully'
         }));
       } else {
@@ -149,9 +174,43 @@ async function handleMessage(socket: WebSocket, message: ClientMessage) {
           type: WebSocketMessageType.Error,
           payload: 'Error scraping tweets'
         }));
+      }      
+      break;
+    case ClientMessageType.Followers:
+      const followers = await workerPool.runTask(message.type, message.payload);
+
+      if (followers) {
+        socket.send(JSON.stringify({
+          messageId: message.id,
+          type: WebSocketMessageType.Success,
+          clientMessageType: message.type,
+          payload: { followers }
+        }));
+      } else {
+        socket.send(JSON.stringify({
+          messageId: message.id,
+          type: WebSocketMessageType.Error,
+          payload: 'Error fetching followers'
+        }));
       }
-      
-      // Handle job status request
+      break;
+    case ClientMessageType.Users:
+      const users = await workerPool.runTask(message.type, message.payload);
+
+      if (users) {
+        socket.send(JSON.stringify({
+          messageId: message.id,
+          type: WebSocketMessageType.Success,
+          clientMessageType: message.type,
+          payload: { users }
+        }));
+      } else {
+        socket.send(JSON.stringify({
+          messageId: message.id,
+          type: WebSocketMessageType.Error,
+          payload: 'Error fetching users'
+        }));
+      }
       break;
     default:
       socket.send(JSON.stringify({

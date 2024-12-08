@@ -37,35 +37,63 @@ export class TwitterScraperService {
     return job.id;
   }
 
-  async runScrapeJob(scrapeType: TwitterScrapeType, handles: string[]): Promise<boolean> {
-    const sinceDate = getSinceDate(scrapeType);
+  // Overload signatures
+  async runScrapeJob(scrapeType: TwitterScrapeType, handles: string[]): Promise<boolean>;
+  async runScrapeJob(input: {
+    input?: {
+      searchTerms?: string[],
+      sort?: string,
+      tweetLanguage?: string,
+      maxItems?: number
+    }
+  }): Promise<boolean>;
 
-      const input = {
-        "searchTerms": handles.map((handle: string) => `from:${handle} since:${sinceDate} -filter:replies`),
-        "sort": "Latest",
-        "tweetLanguage": "en",
+  // Implementation
+  async runScrapeJob(
+    scrapeTypeOrInput: TwitterScrapeType | { input?: {
+      searchTerms?: string[],
+      sort?: string,
+      tweetLanguage?: string,
+      maxItems?: number
+    } },
+    handles?: string[]
+  ): Promise<boolean> {
+    const isSimpleVersion = typeof scrapeTypeOrInput === 'string';
+    
+    let input;
+    
+    if (isSimpleVersion) {
+      const sinceDate = getSinceDate(scrapeTypeOrInput);
+
+      input = {
+        searchTerms: handles!.map(handle => `from:${handle} since:${sinceDate} -filter:replies`),
+        sort: "Latest",
+        tweetLanguage: "en",
+        maxItems: 1500,
       };
+    } else {
+      input = scrapeTypeOrInput.input;
+    }
 
-      const job: Job = {
-        id: crypto.randomUUID(),
-        status: 'running',
-        type: 'twitter_scrape',
-        params: JSON.stringify({input: input, env: process.env.ENVIRONMENT}),
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
-  
-      await addJobToDb(job);
+    const job: Job = {
+      id: crypto.randomUUID(),
+      status: 'running',
+      type: 'twitter_scrape',
+      params: JSON.stringify({input: input, env: process.env.ENVIRONMENT}),
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
 
-      try {
-        const tweets = await this.cronJobService.runScrapeJob(job.id, input);
-        await updateJobStatus(job.id, 'completed');
-        await addTweetsToDb(tweets);
+    await addJobToDb(job);
 
-        return true;
-      } catch (error) {
-        console.error('Error in runScrapeJob:', error);
-        return false;
-      }
+    try {
+      const tweets = await this.cronJobService.runScrapeJob(job.id, input);
+      await updateJobStatus(job.id, 'completed');
+      await addTweetsToDb(tweets);
+      return true;
+    } catch (error) {
+      console.error('Error in runScrapeJob:', error);
+      return false;
+    }
   }
 }

@@ -36,6 +36,7 @@ export function getSinceDate(scrapeType: TwitterScrapeType): string {
       case TwitterScrapeType.Micro:
         sinceDate = new Date(now);
         sinceDate.setMonth(now.getMonth() - 6);
+        // sinceDate = new Date('2024-11-01T00:00:00Z');
         break;
       default:
         throw new Error('Invalid scrape type');
