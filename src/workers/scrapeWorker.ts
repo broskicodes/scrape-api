@@ -6,6 +6,7 @@ import { getSinceDate } from '../lib/utils';
 import { TwitterScrapeType } from '../lib/types';
 
 parentPort?.on('message', async ({ type, payload }: { type: ClientMessageType, payload: ClientMessagePayload }) => {
+    console.log('Received message', type, payload);
     switch (type) {
         case ClientMessageType.Scrape: {
             const { scrapeType, handles } = payload as ScrapePayload;

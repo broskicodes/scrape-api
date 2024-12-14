@@ -183,6 +183,13 @@
       "when": 1733681939410,
       "tag": "0025_public_monster_badoon",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1734056691433,
+      "tag": "0026_vengeful_captain_america",
+      "breakpoints": true
     }
   ]
 }

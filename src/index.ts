@@ -90,6 +90,7 @@ async function startWorkerPool() {
   });
 
   return Promise.all(workers.concat(postWorkers));
+  // return Promise.all(workers);
 }
 
 // Schedule the daily cron job to run at midnight (00:00)
@@ -125,10 +126,10 @@ const start = async () => {
     // await twitterUsersService.importUsers(['levelsio']);
     // await cronJobService.scheduleDailyTwitterScrapeJobs();
 
-    startWorkerPool().catch(error => {
-      console.error('Worker pool error:', error);
-      process.exit(1);
-    });
+    // startWorkerPool().catch(error => {
+    //   console.error('Worker pool error:', error);
+    //   process.exit(1);
+    // });
   } catch (err) {
     server.log.error(err);
     process.exit(1);

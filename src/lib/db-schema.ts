@@ -207,6 +207,7 @@ export const profiles = pgTable("profiles", {
   persona: text("persona").notNull(),
   target_audience: text("target_audience").notNull(),
   content_pillars: jsonb("content_pillars").notNull(),
+  writing_style: text("writing_style").notNull().default(""),
   embedding: vector("embedding", { dimensions: 384 }),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
@@ -240,7 +241,7 @@ export const freeloaders = pgTable("freeloaders", {
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const tweetDraftStatus = pgEnum("tweet_draft_status", ["draft", "scheduled", "posting", "posted", "failed"]);
+export const tweetDraftStatus = pgEnum("tweet_draft_status", ["draft", "scheduled", "posted"]);
 
 export const tweetDrafts = pgTable("tweet_drafts", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),

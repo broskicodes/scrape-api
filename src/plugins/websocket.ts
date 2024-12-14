@@ -40,13 +40,13 @@ export class WorkerPool {
       });
       worker.isAvailable = true;
       this.workers.push(worker);
-      console.log(`Worker ${i} initialized`);
+      console.log(`Scrape Worker ${i+1} initialized`);
     }
   }
 
   private processNextTask() {
     if (this.taskQueue.length === 0) return;
-    
+
     const availableWorker = this.workers.find(w => w.isAvailable);
     if (!availableWorker) return;
 
