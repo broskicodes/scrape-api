@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 import * as schema from './db-schema';
 import { desc, eq, gte, isNull, and, sql, lte } from 'drizzle-orm';
 import { Job, JobStatus, Tweet, SearchFilters, TweetEntity, TwitterAuthor, Draft, TweetDraftStatus } from './types';
-import { jobs, searches, subscriptions, users } from './db-schema';
+import { jobs, savedTweets, searches, subscriptions, users } from './db-schema';
 import { chunkArray } from "./utils";
 
 let pool: Pool | null = null;
@@ -28,6 +28,62 @@ function getPool(): Pool {
 export function getDb() {
   const pool = getPool();
   return drizzle(pool, { schema });
+}
+
+export async function createUser(
+  twitterHandleId: string,
+  name: string,
+  twitterHandle: string,
+  twitterHandleVerified: boolean,
+  accessToken?: string,
+  refreshToken?: string,
+  expiresIn?: number
+) {
+  const db = getDb();
+
+  await db.insert(schema.twitterHandles).values({ 
+    id: BigInt(twitterHandleId),
+    handle: twitterHandle,
+    url: `https://x.com/${twitterHandle}`,
+    pfp: `https://unavatar.io/twitter/${twitterHandle}`,
+    name: name,
+    verified: twitterHandleVerified,
+    created_at: new Date(),
+    updated_at: new Date()
+  }).onConflictDoUpdate({
+    target: schema.twitterHandles.id,
+    set: {
+      handle: twitterHandle,
+      url: `https://x.com/${twitterHandle}`,
+      pfp: `https://unavatar.io/twitter/${twitterHandle}`,
+      name: name,
+      verified: twitterHandleVerified,
+      updated_at: new Date()
+    }
+  });
+  
+  const [{ id }] = await db.insert(users).values({ 
+    name, 
+    email: "",
+    twitter_handle_id: BigInt(twitterHandleId),
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    expires_in: expiresIn,
+    created_at: new Date(), 
+    updated_at: new Date() 
+  }).onConflictDoUpdate({
+    target: users.twitter_handle_id,
+    set: {
+      name,
+      twitter_handle_id: BigInt(twitterHandleId),
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      expires_in: expiresIn,
+      updated_at: new Date()
+    }
+  }).returning({ id: users.id });
+
+  return id;
 }
 
 export async function getUser(userId: string) {
@@ -340,4 +396,9 @@ export async function updateDraftStatus(draftId: string, status: TweetDraftStatu
 export async function setDraftPosted(draftId: string) {
   const db = getDb();
   await db.update(schema.tweetDrafts).set({ status: 'posted', posted_at: new Date(), updated_at: new Date() }).where(eq(schema.tweetDrafts.id, draftId));
+}
+
+export async function saveTweet(tweetId: string, userId: string) {
+  const db = getDb();
+  await db.insert(savedTweets).values({ user_id: userId, tweet_id: BigInt(tweetId) });
 }

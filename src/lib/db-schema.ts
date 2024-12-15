@@ -10,6 +10,7 @@ import {
   bigint,
   boolean,
   vector,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 
 export const blogposts = pgTable("blogposts", {
@@ -106,6 +107,9 @@ export const users = pgTable("users", {
   onboarded: boolean("onboarded").notNull().default(false),
   oauth_token: text("oauth_token"),
   oauth_token_secret: text("oauth_token_secret"),
+  access_token: text("access_token"),
+  refresh_token: text("refresh_token"),
+  expires_in: integer("expires_in"),
   resend_contact_id: uuid("resend_contact_id"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
@@ -256,3 +260,17 @@ export const tweetDrafts = pgTable("tweet_drafts", {
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   deleted_at: timestamp("deleted_at"),
 });
+
+export const savedTweets = pgTable("saved_tweets", {
+  user_id: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  tweet_id: bigint("tweet_id", { mode: "bigint" })
+    .references(() => tweets.tweet_id)
+    .notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.user_id, table.tweet_id] }),
+}));

@@ -13,10 +13,18 @@ import os from 'os';
 import path from 'path';
 import websocketPlugin from './plugins/websocket';
 
+declare module 'fastify' {
+  interface FastifyInstance {
+    twitterCodeVerifiers: Map<string, string>
+  }
+}
+
 const cronJobService = new CronJobService();
 const server = Fastify({
   logger: true
 });
+
+server.decorate('twitterCodeVerifiers', new Map<string, string>())
 
 // Register plugins
 server.register(cors);
