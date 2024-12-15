@@ -8,6 +8,6 @@ interface SaveTweetParams {
 export class TweetSaveService {
   static async saveTweet({ userId, tweetId }: SaveTweetParams): Promise<void> {
     console.log('Saving tweet:', tweetId, userId);
-    // await saveTweet(tweetId, userId);
+    await saveTweet(tweetId, userId);
   }
 } 

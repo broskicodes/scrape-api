@@ -134,10 +134,10 @@ const start = async () => {
     // await twitterUsersService.importUsers(['levelsio']);
     // await cronJobService.scheduleDailyTwitterScrapeJobs();
 
-    // startWorkerPool().catch(error => {
-    //   console.error('Worker pool error:', error);
-    //   process.exit(1);
-    // });
+    startWorkerPool().catch(error => {
+      console.error('Worker pool error:', error);
+      process.exit(1);
+    });
   } catch (err) {
     server.log.error(err);
     process.exit(1);
