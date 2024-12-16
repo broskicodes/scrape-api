@@ -120,7 +120,7 @@ const followerUpdateCronJob = cron.schedule('0 */12 * * *', async () => {
 const start = async () => {
   try {
     // Start the cron job
-    scrapeCronJob.start();
+    // scrapeCronJob.start();
     followerUpdateCronJob.start();
     // weeklyScrapeCronJob.start();
     console.log('Cron job started');
