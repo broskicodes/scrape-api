@@ -133,7 +133,7 @@ export async function addHandlesToDb(handles: TwitterAuthor[]) {
 export async function addTweetsToDb(tweets: Tweet[]) {
   const db = getDb();
 
-  const searchTerms: string[] = [];
+  // const searchTerms: string[] = [];
 
   for (const tweet of tweets) {
     // Check if the author already exists in twitterHandles
@@ -198,25 +198,25 @@ export async function addTweetsToDb(tweets: Tweet[]) {
         },
       });
 
-    if (tweet.thread_id) {
-      searchTerms.push(`from:${tweet.author.handle} filter:self_threads conversation_id:${tweet.tweet_id}`);
-    }
+    // if (tweet.thread_id) {
+    //   searchTerms.push(`from:${tweet.author.handle} filter:self_threads conversation_id:${tweet.tweet_id}`);
+    // }
   }
 
-  if (searchTerms.length > 0) {
-    const batches = chunkArray(searchTerms, 100);
+  // if (searchTerms.length > 0) {
+  //   const batches = chunkArray(searchTerms, 100);
 
-    for (const batch of batches) {
-      await addJobToDb({
-        id: crypto.randomUUID(),
-        status: 'pending',
-        type: 'thread_import',
-        params: JSON.stringify({ input: { searchTerms: batch }, env: process.env.ENVIRONMENT }),
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
-    }
-  }
+  //   for (const batch of batches) {
+  //     await addJobToDb({
+  //       id: crypto.randomUUID(),
+  //       status: 'pending',
+  //       type: 'thread_import',
+  //       params: JSON.stringify({ input: { searchTerms: batch }, env: process.env.ENVIRONMENT }),
+  //       created_at: new Date(),
+  //       updated_at: new Date(),
+  //     });
+  //   }
+  // }
 }
 
 export async function addThreadsToDb(tweets: Tweet[]) {
