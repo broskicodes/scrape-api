@@ -398,7 +398,18 @@ export async function setDraftPosted(draftId: string) {
   await db.update(schema.tweetDrafts).set({ status: 'posted', posted_at: new Date(), updated_at: new Date() }).where(eq(schema.tweetDrafts.id, draftId));
 }
 
+export async function getSavedTweetById(userId: string, tweetId: string): Promise<any> {
+  const db = getDb();
+  const result = await db.select().from(savedTweets).where(and(eq(savedTweets.user_id, userId), eq(savedTweets.tweet_id, BigInt(tweetId))));
+  return result[0];
+}
+
 export async function saveTweet(tweetId: string, userId: string) {
   const db = getDb();
   await db.insert(savedTweets).values({ user_id: userId, tweet_id: BigInt(tweetId) });
+}
+
+export async function deleteSavedTweet(userId: string, tweetId: string) {
+  const db = getDb();
+  await db.delete(savedTweets).where(and(eq(savedTweets.user_id, userId), eq(savedTweets.tweet_id, BigInt(tweetId))));
 }
