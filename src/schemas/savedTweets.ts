@@ -5,6 +5,7 @@ export const saveTweetSchema = {
     properties: {
       tweetId: { type: 'string' },
       userId: { type: 'string' },
+      author: { type: 'string' },
     },
   },
   response: {

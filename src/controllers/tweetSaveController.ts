@@ -4,6 +4,7 @@ import { TweetSaveService } from '../services/tweetSaveService'
 interface SaveTweetBody {
   tweetId: string
   userId: string
+  author: string
 }
 
 interface GetTweetParams {
@@ -16,8 +17,8 @@ export async function saveTweet(
   reply: FastifyReply
 ) {
   try {
-    const { tweetId, userId } = request.body
-    await TweetSaveService.saveTweet({ userId, tweetId })
+    const { tweetId, userId, author } = request.body
+    await TweetSaveService.saveTweet({ userId, tweetId, author })
     
     return reply.send({
       success: true,

@@ -268,6 +268,7 @@ export const savedTweets = pgTable("saved_tweets", {
   tweet_id: bigint("tweet_id", { mode: "bigint" })
     // .references(() => tweets.tweet_id)
     .notNull(),
+  author: text("author").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   deleted_at: timestamp("deleted_at"),

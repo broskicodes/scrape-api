@@ -404,9 +404,9 @@ export async function getSavedTweetById(userId: string, tweetId: string): Promis
   return result[0];
 }
 
-export async function saveTweet(tweetId: string, userId: string) {
+export async function saveTweet(tweetId: string, userId: string, author: string) {
   const db = getDb();
-  await db.insert(savedTweets).values({ user_id: userId, tweet_id: BigInt(tweetId) });
+  await db.insert(savedTweets).values({ user_id: userId, tweet_id: BigInt(tweetId), author });
 }
 
 export async function deleteSavedTweet(userId: string, tweetId: string) {
